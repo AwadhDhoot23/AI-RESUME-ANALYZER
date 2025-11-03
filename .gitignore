@@ -1,0 +1,12 @@
+# Environment variables
+.env
+backend/.env
+frontend/src/firebaseConfig.js
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node
+frontend/node_modules

@@ -10,9 +10,10 @@ def extract_text(file_path: str) -> str:
         with pdfplumber.open(file_path) as pdf:
             for page in pdf.pages:
                 text += page.extract_text() or ""
-    elif ext in [".docx"]:
+    elif ext == ".docx":
         doc = Document(file_path)
         text = "\n".join([p.text for p in doc.paragraphs])
     else:
         raise ValueError("Unsupported file format")
     return text.strip()
+    

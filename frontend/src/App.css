@@ -1,21 +1,165 @@
-.app-container {
+/* src/App.css */
+
+/* 1. FINAL PREMIUM DARK GOLD/AMBER AESTHETIC */
+:root {
+  /* Core Colors */
+  --bg-dark: #121212; /* Deep Black Background for Max Contrast */
+  --paper-layer: #1E1E1E; /* Lighter Charcoal Gray for Cards/Panels */
+  --sidebar-layer: #191919; /* Very dark layer for the sidebar */
+  
+  --accent-gold: #FFC107; /* Professional Gold/Amber (Primary Accent) */
+  --accent-hover: #FFB300; /* Darker hover state */
+  --text-primary: #F0F4F8; /* Near-White Text */
+  --text-secondary: #9E9E9E; /* Muted Gray Text */
+  --error-red: #D32F2F; 
+
+  /* Layout */
+  --sidebar-width: 250px; /* Expanded Width */
+  --mini-sidebar-width: 72px; /* NEW: Collapsed Width */
+  --component-border-radius: 12px;
+  --component-shadow: 0 6px 20px rgba(0, 0, 0, 0.7); 
+  --border-subtle: 1px solid rgba(255, 193, 7, 0.2); /* Subtle gold border */
+}
+
+/* Base Body Styles */
+body {
+  margin: 0;
+  transition: background-color 0.3s ease;
+}
+
+/* Apply Dark Mode Colors */
+body.dark-mode {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+/* --- NEW: SEPIA MODE STYLES --- */
+body.sepia-mode {
+    background: #FBF0D9; /* Soft yellowish background */
+    color: #4B371C; /* Dark brown text */
+}
+.sepia-mode .app-bar {
+    background-color: #E6D8B6 !important; /* Muted Header */
+    color: #4B371C;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; 
+    box-shadow: none !important;
+}
+.sepia-mode .sidebar-drawer .MuiDrawer-paper {
+    background-color: #E6D8B6 !important; /* Muted Sidebar */
+    color: #4B371C;
+    border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+.sepia-mode .MuiTypography-root,
+.sepia-mode .MuiInputLabel-root {
+    color: #4B371C !important; /* Ensure all text/labels are dark brown */
+}
+
+/* Fallback for light/sepia mode Paper elements (MUI handles most, but enforce high contrast for user text) */
+.light-mode .upload-section,
+.light-mode .MuiPaper-root {
+    background: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+.sepia-mode .upload-section,
+.sepia-mode .MuiPaper-root {
+  background: #FFF5E0 !important; 
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+/* ------------------------------- */
+
+
+/* AppBar (Top bar) */
+.dark-mode .app-bar {
+  background-color: var(--sidebar-layer) !important; 
+  color: var(--text-primary);
+  border-bottom: var(--border-subtle); 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Sidebar Drawer - Clean Separation (Updated for Mini-Drawer transition) */
+.dark-mode .sidebar-drawer .MuiDrawer-paper {
+  background-color: var(--sidebar-layer); 
+  color: var(--text-primary);
+  border-right: none; 
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  flex-direction: column; 
+  transition: width 0.3s ease, background-color 0.3s ease !important; /* Added width transition */
+  overflow-x: hidden; /* Hide content that exceeds mini-width */
 }
 
-.upload-section {
-  padding: 30px;
-  width: 100%;
-  border-radius: 12px;
-  transition: 0.3s;
+/* Sidebar List Items - Standard Modern Interaction */
+.sidebar-list-item {
+  /* FIX: Remove rounding from list items for sharp corners */
+  border-radius: 0 !important; 
+  margin-bottom: 4px !important;
+  transition: background-color 0.2s ease, transform 0.1s ease !important;
+}
+/* Dark Mode Nav Hover/Selected Styles */
+.dark-mode .sidebar-list-item:hover {
+  background-color: rgba(255, 193, 7, 0.15) !important; /* Gold hover effect */
+}
+/* Sepia Mode Nav Hover/Selected Styles */
+.sepia-mode .sidebar-list-item:hover {
+  background-color: rgba(75, 55, 28, 0.08) !important; /* Dark brown subtle hover */
 }
 
-.upload-section:hover {
-  transform: scale(1.01);
+
+/* Selected list item (Accent) */
+.sidebar-list-item.Mui-selected {
+  background-color: var(--accent-gold) !important;
+  color: var(--bg-dark) !important; /* Dark text on bright gold */
+  box-shadow: 0 0 16px rgba(255, 193, 7, 0.6); 
+}
+.sidebar-list-item.Mui-selected .MuiListItemIcon-root {
+  color: var(--bg-dark) !important;
+}
+.sidebar-list-item.Mui-selected:hover {
+  background-color: var(--accent-hover) !important;
 }
 
-.MuiButton-root {
-  margin-top: 10px;
+/* Upload area & General Paper - HIGH CONTRAST LAYER */
+.dark-mode .upload-section,
+.dark-mode .MuiPaper-root {
+  background: var(--paper-layer) !important; 
+  border: var(--border-subtle); 
+  box-shadow: var(--component-shadow);
+  transition: all 0.3s ease; 
+}
+
+/* Sidebar Profile Area (Adjusted for collapse) */
+.sidebar-profile-box {
+  transition: background-color 0.2s ease;
+}
+.dark-mode .sidebar-profile-box:hover {
+    background-color: rgba(255, 193, 7, 0.05);
+}
+
+/* LOGOUT BUTTON - PUSHED TO ABSOLUTE BOTTOM */
+.logout-box {
+    margin-top: auto; 
+    padding: 16px;
+}
+
+/* Dashboard Fix - Ensure charts are centered and contained */
+.dashboard-card {
+    min-height: 300px;
+    height: 100%;
+}
+
+/* Typography & Inputs */
+.dark-mode .MuiButton-containedPrimary {
+    background-color: var(--accent-gold) !important;
+    color: black !important; /* Ensure black text on bright gold */
+}
+.dark-mode .MuiButton-containedPrimary:hover {
+    background-color: var(--accent-hover) !important;
+}
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: var(--accent-gold) !important;
+    box-shadow: 0 0 4px rgba(255, 193, 7, 0.5);
+}
+.MuiInputLabel-root.Mui-focused {
+    color: var(--accent-gold) !important;
 }
