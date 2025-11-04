@@ -163,26 +163,3 @@ body.sepia-mode {
 .MuiInputLabel-root.Mui-focused {
     color: var(--accent-gold) !important;
 }
-
-/* --- NEW CSS --- */
-/* This ensures that the motion.div wrapper doesn't cause layout shift */
-.main-content-area > div {
-  width: 100%;
-}
-
-/* Style for the Optimization History cards */
-.dark-mode .opt-history-card {
-  border-left: 3px solid var(--accent-gold);
-  transition: background-color 0.2s ease, transform 0.2s ease;
-}
-
-.dark-mode .opt-history-card:hover {
-  background-color: rgba(255, 193, 7, 0.05) !important;
-  transform: translateY(-2px);
-}
-
-.sepia-mode .opt-history-card:hover,
-.light-mode .opt-history-card:hover {
-  background-color: rgba(0, 0, 0, 0.03) !important;
-  transform: translateY(-2px);
-}
