@@ -1166,7 +1166,7 @@ if (!user)
           muted
           playsInline
           
-          src="/galaxy.mp4" // <-- Assumes 'background.mp4' is in your /public folder
+          src="/background.mp4" // <-- Assumes 'background.mp4' is in your /public folder
           style={{
             position: 'absolute',
             width: '100%',
