@@ -54,6 +54,9 @@ import VisibilityIcon from '@mui/icons-material/Visibility'; // NEW ICON for his
 import BadgeIcon from '@mui/icons-material/Badge'; // NEW ICON for changing username
 import FeedbackIcon from '@mui/icons-material/Feedback'; // NEW ICON for Feedback tab
 // -------------------
+
+
+
 import axios from "axios";
 import ResultCard from "./components/ResultCard";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -215,7 +218,7 @@ const App = () => {
         enqueueSnackbar('Login Successful!', { variant: 'success' });
         const storedDefaultTab = localStorage.getItem('defaultTab');
         setTabIndex(parseInt(storedDefaultTab) || 0);
-      })
+      }) 
       .catch(() => {
         enqueueSnackbar("Invalid credentials.", { variant: 'error' });
       });
@@ -634,7 +637,7 @@ const App = () => {
 
     try {
       const res = await axios.post(`${apiUrl}/analyze_resume/`, formData, {
-        headers: { "Content-Type": "multipart-form-data" },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       
       const now = new Date();
@@ -809,31 +812,39 @@ const App = () => {
     setMobileOpen(!mobileOpen);
   };
   
-  // --- Sidebar Content (UPDATED HEADER WITH LOGO AND APP NAME) ---
-  const drawerContent = (
+  // ---
+  // ---
+  // --- START OF REFACTORED DRAWER CONTENT ---
+  // ---
+  // ---
+  
+  // --- 1. MOBILE DRAWER CONTENT (Always expanded, uses mobile handlers) ---
+  const mobileDrawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 1 }}>
-      <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: drawerOpen ? 'space-between' : 'center', p: 2, pt: 3, pb: 1 }}>
-        {drawerOpen && (
-          <Box display="flex" alignItems="center">
-             <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
-                <img
-                    src={Logo}
-                    alt="Logo"
-                    style={{ height: '100%', width: 'auto', display: 'block' }}
-                />
-            </Box>
-            <Typography variant="h5" fontWeight="bold">
-                RESUMIFYY
-            </Typography>
+      <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, pt: 3, pb: 1 }}>
+        
+        {/* Mobile: Logo is always visible */}
+        <Box display="flex" alignItems="center">
+           <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
+              <img
+                  src={Logo}
+                  alt="Logo"
+                  style={{ height: '100%', width: 'auto', display: 'block' }}
+              />
           </Box>
-        )}
-        <IconButton onClick={handleDrawerDesktopToggle} edge="start" sx={{ ml: drawerOpen ? 0 : '-8px', color: 'var(--accent-gold)' }}>
-            {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+          <Typography variant="h5" fontWeight="bold">
+              RESUMIFYY
+          </Typography>
+        </Box>
+
+        {/* Mobile: Close button uses handleDrawerToggle */}
+        <IconButton onClick={handleDrawerToggle} edge="start" sx={{ color: 'var(--accent-gold)' }}>
+            <ChevronLeftIcon />
         </IconButton>
       </Toolbar>
       <Divider />
       
-      {/* --- SIDEBAR NAVIGATION (FLEX GROW TO PUSH FOOTER DOWN) --- */}
+      {/* Mobile: List is always expanded */}
       <List sx={{p: 1, flexGrow: 1 }}>
         {[
           { text: "Dashboard", icon: <DashboardIcon />, index: 0 },
@@ -849,54 +860,51 @@ const App = () => {
               className="sidebar-list-item"
               sx={{
                 minHeight: 48,
-                justifyContent: drawerOpen ? 'initial' : 'center',
+                justifyContent: 'initial', // Always 'initial'
                 px: 2.5,
               }}
             >
               <ListItemIcon
                 sx={{
                   minWidth: 0,
-                  mr: drawerOpen ? 3 : 'auto',
+                  mr: 3, // Always 3
                   justifyContent: 'center',
                 }}
               >
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.text} sx={{ opacity: drawerOpen ? 1 : 0 }} />
+              <ListItemText primary={item.text} sx={{ opacity: 1 }} /> {/* Always 1 */}
             </ListItemButton>
           </ListItem>
         ))}
       </List>
       
-      {/* --- FOOTER CONTAINER (PROFILE BOX + LOGOUT) --- */}
+      {/* Mobile: Footer is always visible */}
       <Box className="sidebar-footer" sx={{
-          opacity: drawerOpen ? 1 : 0,
+          opacity: 1, // Always 1
           transition: 'opacity 0.3s',
       }}>
         {/* Profile Box */}
         <Box className="sidebar-profile-box" sx={{
             px: '16px',
-            pb: '8px', // Space below the profile info
-            // Removed custom border styles here
+            pb: '8px', 
         }}>
           <Box
               display="flex"
               alignItems="center"
               gap={2}
               onClick={openProfile}
-              // Changed padding to pt: 1, pb: 1 for minimal spacing
-              sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }} // Ensure no border top
+              sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }} 
           >
             <Avatar
               sx={{
                   width: 40,
                   height: 40,
                   cursor: 'pointer',
-                  border: '3px solid transparent', // Ensures no golden ring
+                  border: '3px solid transparent', 
               }}
             />
             <Box sx={{ overflow: 'hidden' }}>
-              {/* Displaying Display Name (Username) */}
               <Typography variant="subtitle2" noWrap>{displayName || "Loading..."}</Typography>
               <Box sx={{p: 0, m: 0, textTransform: 'none', justifyContent: 'flex-start' }}>
                   <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
@@ -909,18 +917,18 @@ const App = () => {
         
         {/* LOGOUT BUTTON */}
         <Box className="logout-box" sx={{
-            padding: drawerOpen ? '16px' : '10px 10px 16px',
+            padding: '16px', // Always '16px'
             transition: 'padding 0.3s',
             pt: 0,
-            borderTop: '1px solid transparent', // Ensures no border above this box
+            borderTop: '1px solid transparent',
         }}>
-          <Box sx={{ height: drawerOpen ? '20px' : '0px' }} /> {/* NEW: Increased spacing box height to 20px */}
+          <Box sx={{ height: '20px' }} /> {/* Always 20px */}
           <Button
             variant="contained"
             color="error"
             onClick={handleLogout}
             fullWidth
-            sx={{ opacity: drawerOpen ? 1 : 0, transition: 'opacity 0.3s' }}
+            sx={{ opacity: 1, transition: 'opacity 0.3s' }} // Always 1
           >
             Logout
           </Button>
@@ -928,6 +936,134 @@ const App = () => {
       </Box>
     </Box>
   );
+
+  // --- 2. DESKTOP DRAWER CONTENT (Uses 'drawerOpen' state for collapsing) ---
+  const desktopDrawerContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 1 }}>
+      <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: drawerOpen ? 'space-between' : 'center', p: 2, pt: 3, pb: 1 }}>
+        
+        {/* Desktop: Logo respects drawerOpen */}
+        {drawerOpen && (
+          <Box display="flex" alignItems="center">
+             <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
+                <img
+                    src={Logo}
+                    alt="Logo"
+                    style={{ height: '100%', width: 'auto', display: 'block' }}
+                />
+            </Box>
+            <Typography variant="h5" fontWeight="bold">
+                RESUMIFYY
+            </Typography>
+          </Box>
+        )}
+        
+        {/* Desktop: Toggle button respects drawerOpen and uses desktop handler */}
+        <IconButton onClick={handleDrawerDesktopToggle} edge="start" sx={{ ml: drawerOpen ? 0 : '-8px', color: 'var(--accent-gold)' }}>
+            {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+        </IconButton>
+      </Toolbar>
+      <Divider />
+      
+      {/* Desktop: List respects drawerOpen */}
+      <List sx={{p: 1, flexGrow: 1 }}>
+        {[
+          { text: "Dashboard", icon: <DashboardIcon />, index: 0 },
+          { text: "Analyze", icon: <TroubleshootIcon />, index: 1 },
+          { text: "History", icon: <HistoryIcon />, index: 2 },
+          { text: "Settings", icon: <SettingsIcon />, index: 3 },
+          { text: "Feedback", icon: <FeedbackIcon />, index: 4 },
+        ].map((item) => (
+          <ListItem disablePadding key={item.index} sx={{ display: 'block' }}>
+            <ListItemButton
+              selected={tabIndex === item.index}
+              onClick={() => { setTabIndex(item.index); setMobileOpen(false); }}
+              className="sidebar-list-item"
+              sx={{
+                minHeight: 48,
+                justifyContent: drawerOpen ? 'initial' : 'center', // Respects drawerOpen
+                px: 2.5,
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: drawerOpen ? 3 : 'auto', // Respects drawerOpen
+                  justifyContent: 'center',
+                }}
+              >
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.text} sx={{ opacity: drawerOpen ? 1 : 0 }} /> {/* Respects drawerOpen */}
+            </ListItemButton>
+          </ListItem>
+        ))}
+      </List>
+      
+      {/* Desktop: Footer respects drawerOpen */}
+      <Box className="sidebar-footer" sx={{
+          opacity: drawerOpen ? 1 : 0, // Respects drawerOpen
+          transition: 'opacity 0.3s',
+      }}>
+        {/* Profile Box */}
+        <Box className="sidebar-profile-box" sx={{
+            px: '16px',
+            pb: '8px', 
+        }}>
+          <Box
+              display="flex"
+              alignItems="center"
+              gap={2}
+              onClick={openProfile}
+              sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }} 
+          >
+            <Avatar
+              sx={{
+                  width: 40,
+                  height: 40,
+                  cursor: 'pointer',
+                  border: '3px solid transparent', 
+              }}
+            />
+            <Box sx={{ overflow: 'hidden' }}>
+              <Typography variant="subtitle2" noWrap>{displayName || "Loading..."}</Typography>
+              <Box sx={{p: 0, m: 0, textTransform: 'none', justifyContent: 'flex-start' }}>
+                  <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
+                      Signed In
+                  </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+        
+        {/* LOGOUT BUTTON */}
+        <Box className="logout-box" sx={{
+            padding: drawerOpen ? '16px' : '10px 10px 16px', // Respects drawerOpen
+            transition: 'padding 0.3s',
+            pt: 0,
+            borderTop: '1px solid transparent', 
+        }}>
+          <Box sx={{ height: drawerOpen ? '20px' : '0px' }} /> {/* Respects drawerOpen */}
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleLogout}
+            fullWidth
+            sx={{ opacity: drawerOpen ? 1 : 0, transition: 'opacity 0.3s' }} // Respects drawerOpen
+          >
+            Logout
+          </Button>
+        </Box>
+      </Box>
+    </Box>
+  );
+  
+  // ---
+  // ---
+  // --- END OF REFACTORED DRAWER CONTENT ---
+  // ---
+  // ---
+
 
   const currentDrawerWidth = drawerOpen ? expandedDrawerWidth : miniDrawerWidth;
 
@@ -1004,24 +1140,61 @@ const App = () => {
   // -----------------------------
 
 
-  // ---------- LOGIN UI (Dynamic Landing Page) ----------
+// ---------- LOGIN UI (Dynamic Landing Page) ----------
   
 if (!user)
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      
       {/* Outer Container: Set height to 100vh and overflow to hidden */}
       <Box
         sx={{
           height: '100vh', // <--- FIXED HEIGHT
           overflow: 'hidden', // <--- DISABLES SCROLLING
           position: 'relative', // For absolute positioning of sections
-          backgroundColor: themeMode === 'dark' ? '#121212' : (themeMode === 'sepia' ? "#FBF0D9" : "#f4f6f8"), // FIX: Use themeMode
+          // backgroundColor: themeMode === 'dark' ? '#121212' : (themeMode === 'sepia' ? "#FBF0D9" : "#f4f6f8"), // <-- REMOVED
           color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"), // FIX: Use themeMode
           transition: 'background-color 0.3s ease, color 0.3s ease'
         }}
       >
         
+        {/* --- 1. NEW: VIDEO BACKGROUND --- */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          
+          src="/galaxy.mp4" // <-- Assumes 'background.mp4' is in your /public folder
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            left: '50%',
+            top: '50%',
+            objectFit: 'cover',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 0 // <-- Behind everything
+          }}
+        />
+        
+        {/* --- 2. NEW: SEMI-TRANSPARENT OVERLAY --- */}
+        {/* This darkens the video so text is easier to read */}
+        <Box
+          sx={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            left: 0,
+            top: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust opacity as needed
+            zIndex: 1 // <-- On top of video, behind content
+          }}
+        />
+        {/* --- END NEW ADDITIONS --- */}
+
+
         {/* --- THEME TOGGLE (Top Right Corner - Select Control) --- */}
         <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 20, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography
@@ -1039,7 +1212,7 @@ if (!user)
             onChange={handleThemeModeChange}
             sx={{
               minWidth: 120,
-              backgroundColor: themeMode === 'dark' ? '#333' : (themeMode === 'sepia' ? "#E6D8B6" : "#fff"),
+              backgroundColor: themeMode === 'dark' ? '#252525ff' : (themeMode === 'sepia' ? "#E6D8B6" : "#fff"),
               color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"),
               // Subtle border adjustment for visual polish on the login page
               '& .MuiOutlinedInput-notchedOutline': {
@@ -1049,7 +1222,6 @@ if (!user)
           >
             <MenuItem value="light">☀️ Light</MenuItem>
             <MenuItem value="dark">🌑 Dark</MenuItem>
-            <MenuItem value="sepia">📚 Sepia</MenuItem>
           </Select>
         </Box>
         {/* --- END THEME TOGGLE --- */}
@@ -1071,8 +1243,10 @@ if (!user)
             top: 0,
             left: 0,
             zIndex: 10,
-            backgroundColor: themeMode === 'dark' ? '#121212' : (themeMode === 'sepia' ? "#FBF0D9" : "#f4f6f8"), // FIX: Use themeMode
-            transition: 'background-color 0.3s ease',
+            // --- MODIFICATION ---
+            backgroundColor: 'transparent', // <-- Make section transparent
+            // --------------------
+            transition: 'background-color 0.4s ease',
           }}
         >
           {/* Hero Content Container - CENTERED */}
@@ -1127,11 +1301,11 @@ if (!user)
                 variant="h5"
                 sx={{
                   fontStyle: 'italic',
-                  color: themeMode === 'dark' ? '#9E9E9E' : (themeMode === 'sepia' ? "#79664D" : "#666"), // FIX: Use themeMode
+                  color: '#dbd4d4ff', // FIX: Use themeMode
                   fontSize: { xs: '1.2rem', sm: '1.5rem' }
                 }}
               >
-                Stop Guessing. Start Matching.
+                <strong>Stop Guessing. Start Matching.</strong>
               </Typography>
 
               {/* Description */}
@@ -1145,13 +1319,14 @@ if (!user)
                   variant="body1"
                   sx={{
                     mt: 4,
-                    color: themeMode === 'dark' ? '#B0BEC5' : (themeMode === 'sepia' ? "#4B371C" : "#555"), // FIX: Use themeMode
-                    lineHeight: 1.6
+                    color:'#cfceceff' , // FIX: Use themeMode
+                    lineHeight: 1.7,
+                    fontSize: 18,
                   }}
                 >
-                  The AI-powered platform designed to optimize your resume
+                  <strong>The AI-powered platform designed to optimize your resume
                   instantly, ensuring it passes modern Applicant Tracking
-                  Systems (ATS).
+                  Systems (ATS).</strong>
                 </Typography>
               </motion.div>
 
@@ -1172,11 +1347,12 @@ if (!user)
                     py: 1.5,
                     px: 4,
                     fontSize: '1.1rem',
-                    backgroundColor: '#FFC107',
-                    color: '#000',
+                    backgroundColor: '#FFB300',
+
+                    color:'#000000ff',
                     fontWeight: 700,
                     '&:hover': {
-                      backgroundColor: '#FFB300'
+                    backgroundColor: '#FFB300'
                     }
                   }}
                 >
@@ -1204,7 +1380,9 @@ if (!user)
             top: 0,
             left: 0,
             zIndex: 15,
-            backgroundColor: themeMode === 'dark' ? '#1E1E1E' : (themeMode === 'sepia' ? "#E6D8B6" : "#ffffff"), // FIX: Use themeMode
+            // --- MODIFICATION ---
+            backgroundColor: 'transparent', // <-- Make section transparent
+            // --------------------
             transition: 'background-color 0.3s ease',
             py: 8 // Responsive padding for content centering
           }}
@@ -1215,8 +1393,16 @@ if (!user)
               width: { xs: '90%', sm: 480 },
               maxWidth: 480,
               textAlign: 'center',
-              backgroundColor: themeMode === 'dark' ? '#1E1E1E' : (themeMode === 'sepia' ? "#FFF5E0" : "#ffffff"), // FIX: Use themeMode
+              backgroundColor: themeMode === 'dark'
+  ? 'rgba(30, 30, 30, 0.8)'
+  : (themeMode === 'sepia'
+    ? 'rgba(255, 245, 224, 0.8)'
+    : 'rgba(255, 255, 255, 0.8)'),
+    backdropFilter: 'blur(12px)',
               color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"), // FIX: Use themeMode
+              position: "relative",
+              zIndex: 5,
+              borderRadius: "25px"
             }}
           >
             <motion.div
@@ -1287,7 +1473,7 @@ if (!user)
                   fullWidth
                   variant="contained"
                   onClick={handleLogin}
-                  sx={{ mt: 2, backgroundColor: '#FFC107', color: '#000' }}
+                  sx={{ mt:3 , backgroundColor: '#eabd0bff', color: '#131313ff' }}
                 >
                   Login to Resumifyy
                 </Button>
@@ -1295,7 +1481,7 @@ if (!user)
               {!showSignup && (
                 <Button
                   size="small"
-                  sx={{ mt: 1, color: '#FFC107' }}
+                  sx={{ mt: 3, color: '#FFC107', fontSize:18}}
                   onClick={() => setForgotOpen(true)}
                 >
                   Forgot Password?
@@ -1305,9 +1491,9 @@ if (!user)
                 <Button
                   size="small"
                   onClick={() => setShowSignup(!showSignup)}
-                  sx={{ color: '#FFC107' }}
+                  sx={{ color: '#FFC107' ,fontSize:18}}
                 >
-                  {showSignup ? 'Back to Login' : "Don't have an account? Sign Up"}
+                  {showSignup ? 'Back to Login' : "Don't have an account?  Sign Up"}
                 </Button>
               </Box>
 
@@ -1361,7 +1547,6 @@ if (!user)
       </Box>
     </ThemeProvider>
   );
-
   // ---------- MAIN APP UI (Dynamic Layout) ----------
   return (
     <ThemeProvider theme={theme}>
@@ -1417,7 +1602,8 @@ if (!user)
               '& .MuiDrawer-paper': { boxSizing: 'border-box', width: expandedDrawerWidth, display: 'flex', flexDirection: 'column' },
             }}
           >
-            {drawerContent}
+            {/* --- FIX: Use mobileDrawerContent --- */}
+            {mobileDrawerContent}
           </Drawer>
           
           {/* Desktop Drawer (Permanent/Collapsible) */}
@@ -1439,7 +1625,8 @@ if (!user)
             }}
             open
           >
-            {drawerContent}
+            {/* --- FIX: Use desktopDrawerContent --- */}
+            {desktopDrawerContent}
           </Drawer>
         </Box>
 
@@ -2379,31 +2566,6 @@ if (!user)
           </Dialog>
           {/* --- END ONBOARDING DIALOG --- */}
           
-          {/* BRANDING ON ALL LOGGED-IN PAGES */}
-          <Box
-            sx={{
-              position: 'absolute', // <--- CORRECT
-              bottom: 16,
-              left: 1490, // <--- CORRECT
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              opacity: 0.9,
-              zIndex: 10,
-              // We do not need margin or transition logic here anymore
-            }}
-          >
-            <Typography variant="caption" fontWeight="bold" sx={{ color: themeMode === 'dark' ? 'var(--text-secondary)' : (themeMode === 'sepia' ? "#79664D" : "#666") }}>
-              RESUMIFYY
-            </Typography>
-            <Box sx={{ width: 44, height: 44 }}> {/* FIX: Increased size */}
-              <img
-                src={Logo}
-                alt="Logo"
-                style={{ height: '100%', width: 'auto', display: 'block' }}
-              />
-            </Box>
-          </Box>
           
         </Box>
       </Box>
@@ -2412,4 +2574,3 @@ if (!user)
 };
 
 export default App;
-
