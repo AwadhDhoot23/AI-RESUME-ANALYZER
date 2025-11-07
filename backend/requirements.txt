@@ -6,3 +6,4 @@ pdfplumber
 python-docx
 firebase-admin
 groq
+python-dotenv
