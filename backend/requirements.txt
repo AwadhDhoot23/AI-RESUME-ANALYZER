@@ -4,5 +4,5 @@ pydantic
 python-multipart
 pdfplumber
 python-docx
-google-genai
 firebase-admin
+groq
