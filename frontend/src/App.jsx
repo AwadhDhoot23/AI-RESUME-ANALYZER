@@ -746,6 +746,17 @@ const App = () => {
         alternateRowStyles: {
           fillColor: tableSubtleBg
         },
+        // --- START OF FIX ---
+        // This hook fires AFTER autoTable adds a new page,
+        // but BEFORE it draws content on that new page.
+        didAddPage: (data) => {
+          if (isDark) {
+            // We must re-apply the background color to the new page
+            pdf.setFillColor(bgColor);
+            pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F');
+          }
+        }
+        // --- END OF FIX ---
       };
       // ---
 

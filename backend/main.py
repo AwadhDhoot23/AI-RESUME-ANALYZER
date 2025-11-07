@@ -1,28 +1,50 @@
 # main.py
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String, Float, Text, DateTime
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base 
-from datetime import datetime, timedelta
+# --- Removed SQLAlchemy imports ---
+from datetime import datetime, timedelta, timezone 
 import os
 import uvicorn
 from dotenv import load_dotenv
 from collections import Counter
 import json
 
+# --- NEW FIREBASE ADMIN IMPORTS ---
+import firebase_admin
+from firebase_admin import credentials, firestore
+# ------------------------------------
+
 # --- CENTRALIZED GROQ API KEY SETUP ---
 load_dotenv() # Load .env file immediately
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = "llama-3.1-8b-instant" # Fastest, cheapest Groq model
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 if not GROQ_API_KEY:
     raise ValueError("FATAL ERROR: GROQ_API_KEY is missing from .env or environment.")
 
 from groq import Groq, GroqError
-# Instantiate the client globally
 groq_client = Groq(api_key=GROQ_API_KEY) 
 # --- END API SETUP ---
+
+# --- UPDATED: FIREBASE ADMIN SDK SETUP (Filepath method) ---
+fs_db = None
+try:
+    # We'll get the FILEPATH from an environment variable
+    service_account_filepath = os.getenv("FIREBASE_SERVICE_ACCOUNT_FILE")
+    
+    if service_account_filepath and os.path.exists(service_account_filepath):
+        cred = credentials.Certificate(service_account_filepath)
+        firebase_admin.initialize_app(cred)
+        fs_db = firestore.client()
+        print("--- DEBUG: Firebase Admin SDK initialized successfully from file. ---")
+    elif service_account_filepath:
+        print(f"--- ERROR: FIREBASE_SERVICE_ACCOUNT_FILE path specified ('{service_account_filepath}'), but file not found. Caching disabled. ---")
+    else:
+        print("--- WARNING: FIREBASE_SERVICE_ACCOUNT_FILE not set in .env. Firestore caching will be disabled. ---")
+except Exception as e:
+    print(f"--- ERROR: Failed to initialize Firebase Admin from file: {e} ---")
+# --- END FIREBASE ADMIN SETUP ---
+
 
 # --- IMPORT UTILS ---
 from utils.parser import extract_text 
@@ -33,39 +55,21 @@ from utils.skill_matcher import analyze_skill_gap
 
 # ---------- CONFIG ----------
 app = FastAPI()
+
+# --- UPDATED CORS ---
+# Read the client URL from an environment variable for deployment
+CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=[CLIENT_URL, "http://localhost:3000"], # Keep localhost for testing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# --- END UPDATED CORS ---
 
-# ---------- DATABASE ----------
-DATABASE_URL = "sqlite:///./results.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}) 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-class ResumeAnalysis(Base):
-    __tablename__ = "resume_analysis"
-    id = Column(Integer, primary_key=True, index=True)
-    filename = Column(String)
-    skill_match = Column(Float)
-    missing_skills = Column(String) 
-    strengths = Column(String)
-    weaknesses = Column(String)
-    suggestions = Column(Text)
-
-# --- NEW CACHE TABLE ---
-class GlobalTrendsCache(Base):
-    __tablename__ = "global_trends_cache"
-    id = Column(Integer, primary_key=True, index=True)
-    data_json = Column(Text) # Stores the JSON response from Groq
-    timestamp = Column(DateTime, default=datetime.utcnow) # When the data was generated
-# --- END NEW CACHE TABLE ---
-
-Base.metadata.create_all(bind=engine)
+# --- DELETED: SQLAlchemy Database Section ---
 
 # ---------- ROUTES ----------
 @app.get("/")
@@ -133,24 +137,10 @@ async def analyze_resume_route(file: UploadFile = File(...), job_description: st
     weaknesses = ai_result.get("weaknesses", []) or []
     suggestions = ai_result.get("suggestions", []) or []
 
-    db = SessionLocal()
-    try:
-        entry = ResumeAnalysis(
-            filename=file.filename,
-            skill_match=skill_match,
-            missing_skills=", ".join(missing_skills_list), 
-            strengths=", ".join(strengths),
-            weaknesses=", ".join(weaknesses),
-            suggestions="\n".join(suggestions),
-        )
-        db.add(entry)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        print("DB write error:", e)
-    finally:
-        db.close()
+    # --- DELETED: SQLAlchemy database logic for history ---
 
+    # We just return the raw analysis data.
+    # The frontend (App.jsx) will save this to Firestore.
     response = {
         "skill_match": skill_match,
         "missing_skills": missing_skills_list,
@@ -165,38 +155,34 @@ async def analyze_resume_route(file: UploadFile = File(...), job_description: st
 
     return response
 
-@app.get("/history")
-def get_history():
-    db = SessionLocal()
-    data = db.query(ResumeAnalysis).all()
-    db.close()
-    return [
-        {
-            "filename": d.filename,
-            "skill_match": d.skill_match,
-            "missing_skills": d.missing_skills.split(", ") if d.missing_skills else [],
-            "strengths": d.strengths.split(", ") if d.strengths else [],
-            "weaknesses": d.weaknesses.split(", ") if d.weaknesses else [],
-            "suggestions": d.suggestions.split("\n") if d.suggestions else [],
-        }
-        for d in data
-    ]
+# --- DELETED: /history endpoint (it was reading from SQLite, which is not used) ---
 
-# --- MODIFIED: MARKET TRENDS ENDPOINT with CACHING LOGIC ---
+# --- REWRITTEN: MARKET TRENDS ENDPOINT with FIRESTORE CACHING ---
 @app.get("/market_trends")
 def generate_market_trends():
-    db = SessionLocal()
-    cache_entry = db.query(GlobalTrendsCache).order_by(GlobalTrendsCache.timestamp.desc()).first()
     
-    # 1. Check Cache Freshness (24 hours)
-    if cache_entry and cache_entry.timestamp > datetime.utcnow() - timedelta(hours=24):
-        db.close()
-        # Cache is fresh, return immediately (Saves API Call)
-        print("--- DEBUG: Returning cached global trends. ---")
-        return json.loads(cache_entry.data_json)
+    # 1. Check Firestore Cache
+    if fs_db:
+        try:
+            cache_ref = fs_db.collection("app_cache").document("market_trends")
+            cache_doc = cache_ref.get()
+            
+            if cache_doc.exists:
+                cache_data = cache_doc.to_dict()
+                cache_timestamp = cache_data.get("timestamp")
+                
+                # Compare cache timestamp (UTC) with current UTC time
+                if cache_timestamp:
+                    cache_age = datetime.now(timezone.utc) - cache_timestamp
+                    if cache_age < timedelta(hours=24):
+                        print("--- DEBUG: Returning Firestore cached global trends. ---")
+                        return cache_data.get("data") # Return the stored dictionary
+                        
+        except Exception as e:
+            print(f"--- WARNING: Firestore cache read failed: {e} ---")
 
-    # 2. Cache is stale or empty, generate new data using Groq
-    print("--- DEBUG: Cache stale. Calling Groq API for new trends. ---")
+    # 2. Cache is stale, empty, or Firestore is disabled. Generate new data.
+    print("--- DEBUG: Cache stale or absent. Calling Groq API for new trends. ---")
     
     try:
         prompt_content = (
@@ -238,31 +224,26 @@ def generate_market_trends():
             ]
         }
         
-        # 3. Save New Data to Cache (Overwrite/Update)
-        if cache_entry:
-            # Update existing entry
-            cache_entry.data_json = json.dumps(formatted_trends_dict)
-            cache_entry.timestamp = datetime.utcnow()
-        else:
-            # Create new entry
-            new_entry = GlobalTrendsCache(
-                data_json=json.dumps(formatted_trends_dict),
-                timestamp=datetime.utcnow()
-            )
-            db.add(new_entry)
-        
-        db.commit()
-        db.close()
+        # 3. Save New Data to Firestore Cache
+        if fs_db:
+            try:
+                payload = {
+                    "timestamp": datetime.now(timezone.utc), # Store current UTC time
+                    "data": formatted_trends_dict
+                }
+                cache_ref = fs_db.collection("app_cache").document("market_trends")
+                cache_ref.set(payload)
+                print("--- DEBUG: Successfully updated Firestore cache. ---")
+            except Exception as e:
+                print(f"--- WARNING: Firestore cache write failed: {e} ---")
         
         return formatted_trends_dict
 
     except GroqError as e:
-        db.close()
         return {"error": f"Groq API Error: {str(e)}", "top_skills": []}
     except Exception as e:
-        db.close()
         return {"error": f"Error generating market trends: {str(e)}", "top_skills": []}
-# --- END CACHING LOGIC ---
+# --- END REWRITTEN ENDPOINT ---
 
 @app.post("/optimize_resume/")
 async def http_optimize_resume(
@@ -298,7 +279,8 @@ async def http_optimize_resume(
         JOB DESCRIPTION:
         {job_description}
         """
-        # --- END REVISED PROMPT ---\r\n\r\n\r\n        # Use Groq client for chat completion
+        # --- END REVISED PROMPT ---
+        # Use Groq client for chat completion
         response = groq_client.chat.completions.create(
             model=GROQ_MODEL,
             messages=[
