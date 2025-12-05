@@ -674,47 +674,49 @@ const App = () => {
 
 
   // handleDownloadPDF (Updated logic for detailed PDF with THEMES)
-  const handleDownloadPDF = () => {
+const handleDownloadPDF = () => {
     if (!result) return;
 
     // --- NEW: Theme Definitions ---
     const isDark = pdfTheme === 'dark';
     const bgColor = isDark ? '#1E1E1E' : '#FFFFFF';
     const textColor = isDark ? '#F0F4F8' : '#000000';
-    const primaryColor = isDark ? '#FFC107' : '#1976D2'; // Gold for dark, Blue for light
+    const primaryColor = isDark ? '#FFC107' : '#1976D2'; 
     const tableTheme = isDark ? 'striped' : 'grid';
     const tableHeadColor = isDark ? primaryColor : primaryColor;
     const tableHeadTextColor = isDark ? '#000000' : '#FFFFFF';
     const tableSubtleBg = isDark ? '#2a2a2a' : '#f9f9f9';
-    // --- End Theme Definitions ---
+    
+    // --- TRACKER: Keep track of pages we have already painted dark ---
+    // We start with 1 because we manually paint Page 1 below.
+    const paintedPages = new Set([1]); 
 
     try {
       const pdf = new jsPDF("p", "mm", "a4");
       
-      // --- NEW: Draw Background ---
+      // --- 1. Paint the First Page Manually ---
       pdf.setFillColor(bgColor);
       pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F');
-      // ---
-
+      
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(18);
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor);
       pdf.text("AI Resume Analysis Report", 14, 20);
       
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "normal");
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor);
       const now = new Date();
       const indianDate = `${String(now.getDate()).padStart(2, "0")}-${String(
         now.getMonth() + 1
-      )}-${now.getFullYear()} ${now.toLocaleTimeString("en-IN")}`;
+      ).padStart(2, "0")}-${now.getFullYear()} ${now.toLocaleTimeString("en-IN")}`;
       pdf.text(`Generated on: ${indianDate}`, 14, 30);
       
       pdf.setFontSize(13);
-      pdf.setTextColor(primaryColor); // <-- Use theme color (accent)
+      pdf.setTextColor(primaryColor);
       pdf.text(`Skill Match: ${result.skill_match || 0}%`, 14, 40);
       
-      pdf.setTextColor(textColor); // <-- Reset to theme color
+      pdf.setTextColor(textColor);
       pdf.setFont("helvetica", "bold");
       pdf.text("Summary", 14, 50);
       
@@ -730,13 +732,13 @@ const App = () => {
       const weaknesses = Array.isArray(result.weaknesses) ? result.weaknesses : [];
       const suggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
       
-      // --- NEW: Define shared table styles ---
+      // --- NEW: Define shared table styles with Robust Background Logic ---
       const tableStyles = {
         theme: tableTheme,
         styles: {
           fontSize: 10,
           textColor: textColor,
-          fillColor: bgColor // Ensure cells have correct bg
+          fillColor: bgColor 
         },
         headStyles: {
           fillColor: tableHeadColor,
@@ -746,71 +748,75 @@ const App = () => {
         alternateRowStyles: {
           fillColor: tableSubtleBg
         },
-        // --- START OF FIX ---
-        // This hook fires AFTER autoTable adds a new page,
-        // but BEFORE it draws content on that new page.
-        didAddPage: (data) => {
-          if (isDark) {
-            // We must re-apply the background color to the new page
+        // --- THE FIX IS HERE 👇 ---
+        // 'willDrawPage' fires BEFORE the table draws on a new page.
+        willDrawPage: (data) => {
+          // Only paint if it's Dark Mode AND we haven't painted this page yet
+          if (isDark && !paintedPages.has(data.pageNumber)) {
             pdf.setFillColor(bgColor);
             pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F');
+            
+            // Mark this page as painted so we don't paint over it again 
+            // if another table starts on the same page.
+            paintedPages.add(data.pageNumber);
           }
         }
-        // --- END OF FIX ---
       };
-      // ---
+      // ---------------------------
 
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor);
       pdf.text("Missing Skills", 14, currentY + 8);
       pdf.setFont("helvetica", "normal");
       autoTable(pdf, {
         startY: currentY + 12,
         head: [["Skill"]],
         body: missing_skills.length > 0 ? missing_skills.map((s) => [s]) : [["None"]],
-        ...tableStyles // <-- Use shared styles
+        ...tableStyles
       });
 
       const strengthsY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 8 : currentY + 12;
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor);
       pdf.text("Strengths", 14, strengthsY);
       pdf.setFont("helvetica", "normal");
       autoTable(pdf, {
         startY: strengthsY + 6,
         head: [["Strength"]],
         body: strengths.length > 0 ? strengths.map((s) => [s]) : [["None"]],
-        ...tableStyles // <-- Use shared styles
+        ...tableStyles
       });
 
       const weaknessesY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 8 : strengthsY + 6;
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor);
       pdf.text("Weaknesses", 14, weaknessesY);
       pdf.setFont("helvetica", "normal");
       autoTable(pdf, {
         startY: weaknessesY + 6,
         head: [["Weakness"]],
         body: weaknesses.length > 0 ? weaknesses.map((w) => [w]) : [["None"]],
-        ...tableStyles // <-- Use shared styles
+        ...tableStyles
       });
 
       const suggestionsY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY + 8 : weaknessesY + 6;
       pdf.setFont("helvetica", "bold");
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor);
       pdf.text("Suggestions", 14, suggestionsY);
       pdf.setFont("helvetica", "normal");
       autoTable(pdf, {
         startY: suggestionsY + 6,
         head: [["Suggestion"]],
         body: suggestions.length > 0 ? suggestions.map((s) => [s]) : [["No suggestions"]],
-        ...tableStyles // <-- Use shared styles
+        ...tableStyles
       });
 
       const pageHeight = pdf.internal.pageSize.height;
+      // Ensure footer is visible on the last page by setting color
       pdf.setFontSize(10);
-      pdf.setTextColor(textColor); // <-- Use theme color
+      pdf.setTextColor(textColor); 
       pdf.text("Generated by RESUMIFYY   |   © 2025 Awadh Projects", 20, pageHeight - 10);
+      
       pdf.save("AI_Resume_Analysis_Report.pdf");
       enqueueSnackbar('Downloading PDF...', { variant: 'info' });
     } catch (e) {
@@ -2076,7 +2082,7 @@ if (!user)
             mx: 'auto'
           }}
         >
-          "We promise this app is less buggy than your code. Help us keep it that way." 💪
+          If something breaks, pretend it's a feature—and then tell us here.😜
         </Typography>
       </Box>
     </motion.div>
@@ -2420,7 +2426,7 @@ if (!user)
             }
           }}
         >
-          ✨ Submit Feedback Securely ✨
+          ✨ Submit Feedback ✨
         </Button>
       </motion.div>
 
@@ -2435,7 +2441,7 @@ if (!user)
             {user ? `🔐 Submitting as: ${displayName} (${user.email})` : "🔒 Please log in to submit feedback"}
           </Typography>
           <Typography variant="caption" color="text.secondary" display="block">
-            ✓ Feedback saved securely to cloud • ✓ We read every single one
+            ✓ We read every single one
           </Typography>
         </Box>
       </motion.div>
@@ -2576,7 +2582,30 @@ if (!user)
             </DialogActions>
           </Dialog>
           {/* --- END ONBOARDING DIALOG --- */}
-          
+          {/* --- END ONBOARDING DIALOG --- */}
+
+          {/* --- NEW: PASSWORD RESET DIALOG (FOR LOGGED IN USERS) --- */}
+          <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)}>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2" sx={{ mb: 2 }}>
+                Confirm your email address below. We will send you a link to set a new password.
+              </Typography>
+              <TextField
+                label="Your Email"
+                fullWidth
+                margin="dense"
+                value={resetUsername}
+                onChange={(e) => setResetUsername(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setForgotOpen(false)}>Cancel</Button>
+              <Button onClick={handleForgotPassword} variant="contained" color="primary">
+                Send Reset Email
+              </Button>
+            </DialogActions>
+          </Dialog>
           
         </Box>
       </Box>
