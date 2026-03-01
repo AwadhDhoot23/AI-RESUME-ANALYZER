@@ -1,5 +1,5 @@
 // src/components/ResultCard.jsx
-import React, { useState } from "react"; 
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,10 +8,10 @@ import {
   LinearProgress,
   Divider,
   Chip,
-  Button, 
-  Dialog, 
-  DialogContent, 
-  DialogTitle, 
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   CircularProgress,
   Paper,
   Grid,
@@ -19,11 +19,11 @@ import {
   Tooltip,
 } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar"; 
-import "react-circular-progressbar/dist/styles.css"; 
-import ReactMarkdown from 'react-markdown'; 
+import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
-import { useTheme } from "@mui/material/styles"; 
+import { useTheme } from "@mui/material/styles";
 
 // --- GET API URL FROM .env.local ---
 const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
@@ -45,8 +45,8 @@ const toArray = (v) => {
 };
 
 const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
-  const theme = useTheme(); 
-  
+  const theme = useTheme();
+
   const {
     skill_match,
     missing_skills,
@@ -62,18 +62,18 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
     weaknesses: toArray(result.weaknesses),
     suggestions: toArray(result.suggestions),
     summary: result.summary ?? "",
-    learning_resources: result.learning_resources ?? {}, 
+    learning_resources: result.learning_resources ?? {},
   };
 
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [showOptimizer, setShowOptimizer] = useState(false);
   const [optimizedText, setOptimizedText] = useState("");
-  
+
   // NOTE: showATSPreview state and logic removed as requested by user.
 
   const score = Math.max(0, Math.min(100, skill_match));
   let level = "Needs Improvement";
-  let levelColor = "#d32f2f"; 
+  let levelColor = "#d32f2f";
 
   if (score >= 75) {
     level = "Excellent";
@@ -90,14 +90,14 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
       alert("Error: Original data not found. This is a bug.");
       return;
     }
-    
+
     setIsOptimizing(true);
-    setShowOptimizer(true); 
-    
+    setShowOptimizer(true);
+
     const formData = new FormData();
     formData.append("resume_text", originalResumeText);
     formData.append("job_description", originalJobDesc);
-    formData.append("missing_skills", missing_skills.join(", ")); 
+    formData.append("missing_skills", missing_skills.join(", "));
 
     try {
       const res = await axios.post(`${apiUrl}/optimize_resume/`, formData);
@@ -115,18 +115,18 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
     setOptimizedText("");
     setIsOptimizing(false);
   };
-  
-  const learningLinks = Object.entries(learning_resources); 
+
+  const learningLinks = Object.entries(learning_resources);
 
   const getProviderConfig = (provider) => {
     switch (provider) {
-        case 'Coursera':
-            return { color: '#0056D2', icon: '🎓' };
-        case 'Udemy':
-            return { color: '#EC5252', icon: '👨‍💻' };
-        case 'YouTube':
-        default:
-            return { color: '#FF0000', icon: '▶️' };
+      case 'Coursera':
+        return { color: '#0056D2', icon: '🎓' };
+      case 'Udemy':
+        return { color: '#EC5252', icon: '👨‍💻' };
+      case 'YouTube':
+      default:
+        return { color: '#FF0000', icon: '▶️' };
     }
   };
 
@@ -135,12 +135,12 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
     <Card
       sx={{
         borderRadius: 4,
-        boxShadow: "0 10px 30px rgba(0,0,0,0.1)", 
-        p: { xs: 1, md: 3 }, 
+        boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+        p: { xs: 1, md: 3 },
         bgcolor: "background.paper",
         color: "text.primary",
         transition: "all 0.3s ease",
-        border: "1px solid var(--glass-border, rgba(0,0,0,0.1))" 
+        border: "1px solid var(--glass-border, rgba(0,0,0,0.1))"
       }}
     >
       <CardContent>
@@ -172,23 +172,23 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
         <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
           Skill Match
         </Typography>
-            
+
         <Divider sx={{ my: 2 }} />
 
         {/* --- ACTIONS ROW --- */}
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 2, gap: 2 }}>
-            {/* AI-Optimize Button */}
-            <Tooltip title="Rewrite sections of your resume (Experience/Summary) to better match the Job Description and cover missing skills.">
-                <Button 
-                  variant="contained" 
-                  color="primary"
-                  onClick={handleOptimize}
-                  disabled={isOptimizing}
-                  startIcon={isOptimizing ? <CircularProgress size={20} color="inherit" /> : "🚀"}
-                >
-                  {isOptimizing ? "Optimizing..." : "AI-Optimize My Resume"}
-                </Button>
-            </Tooltip>
+          {/* AI-Optimize Button */}
+          <Tooltip title="Rewrite sections of your resume (Experience/Summary) to better match the Job Description and cover missing skills.">
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOptimize}
+              disabled={isOptimizing}
+              startIcon={isOptimizing ? <CircularProgress size={20} color="inherit" /> : "🚀"}
+            >
+              {isOptimizing ? "Optimizing..." : "AI-Optimize My Resume"}
+            </Button>
+          </Tooltip>
         </Box>
         <Divider sx={{ my: 2 }} />
         {/* --- END ACTIONS ROW --- */}
@@ -231,80 +231,77 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
         <Divider sx={{ my: 2 }} />
 
         {/* --- MODIFIED: Missing Skills & Resources (Modernized UI) --- */}
-        <Typography 
-            variant="h6" 
-            align="center" 
-            gutterBottom 
-            fontWeight="bold" 
-            sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
+        <Typography
+          variant="h6"
+          align="center"
+          gutterBottom
+          fontWeight="bold"
+          sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
         >
           <Box component="span" sx={{ color: theme.palette.error.main }}>⚠️</Box> Missing Skills & Learning Resources
         </Typography>
-        
+
         {learningLinks.length > 0 ? (
           <Box sx={{ px: { xs: 1, md: 3 } }}>
             {learningLinks.map(([skill, resourcesDict], skillIndex) => (
-              <Paper 
-                key={skillIndex} 
+              <Paper
+                key={skillIndex}
                 elevation={6} // Increased elevation for a premium feel
-                sx={{ 
-                    mb: 3, 
-                    p: { xs: 2, sm: 3 }, 
-                    borderLeft: `4px solid ${theme.palette.error.main}`, // Red error border accent
-                    transition: 'transform 0.2s',
-                    '&:hover': { transform: 'scale(1.01)', boxShadow: '0 8px 16px rgba(0,0,0,0.3)' }
+                sx={{
+                  mb: 3,
+                  p: { xs: 2, sm: 3 },
+                  borderLeft: `4px solid ${theme.palette.error.main}`, // Red error border accent
+                  transition: 'transform 0.2s',
+                  '&:hover': { transform: 'scale(1.01)', boxShadow: '0 8px 16px rgba(0,0,0,0.3)' }
                 }}
               >
-                
+
                 {/* Skill Title */}
-                <Typography 
-                    variant="subtitle1" 
-                    fontWeight="bold" 
-                    sx={{ mb: 2, color: theme.palette.error.main }} // Use error color for missing skill
+                <Typography
+                  variant="subtitle1"
+                  fontWeight="bold"
+                  sx={{ mb: 2, color: theme.palette.error.main }} // Use error color for missing skill
                 >
                   Missing Skill: {skill}
                 </Typography>
-                
-                {/* Resource Links GRID */}
-                <Stack 
-                    direction={{ xs: 'column', sm: 'row' }} 
-                    spacing={1} 
-                    flexWrap="wrap"
-                >
-                    {Object.entries(resourcesDict).map(([provider, resource], i) => {
-                        const config = getProviderConfig(provider);
-                        const link = typeof resource === 'string' ? resource : resource.link;
 
-                        // Check if the resource is the structured YouTube object (for optional future thumbnail use)
-                        const isYouTubeStructured = provider === 'YouTube' && typeof resource === 'object' && resource !== null && resource.id;
-                        
-                        return (
-                            <Button
-                                key={i}
-                                variant="contained"
-                                size="small"
-                                href={link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                sx={{ 
-                                    bgcolor: config.color, 
-                                    color: 'white',
-                                    fontWeight: 'bold', // Make text bold
-                                    boxShadow: `0 3px 6px ${config.color}55`, // Subtle shadow matching button color
-                                    '&:hover': { 
-                                        bgcolor: config.color, 
-                                        opacity: 0.9, 
-                                        transform: 'translateY(-1px)' 
-                                    },
-                                    textTransform: 'none',
-                                    minWidth: 120,
-                                    py: 1,
-                                }}
-                            >
-                                {config.icon} {provider} Link
-                            </Button>
-                        );
-                    })}
+                {/* Resource Links GRID */}
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1}
+                  flexWrap="wrap"
+                >
+                  {Object.entries(resourcesDict).map(([provider, resource], i) => {
+                    const config = getProviderConfig(provider);
+                    const link = typeof resource === 'string' ? resource : resource.link;
+
+                    return (
+                      <Button
+                        key={i}
+                        variant="contained"
+                        size="small"
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{
+                          bgcolor: config.color,
+                          color: 'white',
+                          fontWeight: 'bold', // Make text bold
+                          boxShadow: `0 3px 6px ${config.color}55`, // Subtle shadow matching button color
+                          '&:hover': {
+                            bgcolor: config.color,
+                            opacity: 0.9,
+                            transform: 'translateY(-1px)'
+                          },
+                          textTransform: 'none',
+                          minWidth: 120,
+                          py: 1,
+                        }}
+                      >
+                        {config.icon} {provider} Link
+                      </Button>
+                    );
+                  })}
                 </Stack>
               </Paper>
             ))}
@@ -348,11 +345,11 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
                 <Typography variant="body2" sx={{ mb: 0.5 }}>
                   • {s}
                 </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={Math.min(100, 100 - i * 10)} 
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min(100, 100 - i * 10)}
                   color="primary" // Use primary accent color
-                  sx={{ height: 6, borderRadius: 2 }} 
+                  sx={{ height: 6, borderRadius: 2 }}
                 />
               </Box>
             ))
@@ -376,7 +373,7 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
               </Box>
             ) : (
               <Grid container spacing={3}>
-                
+
                 {/* 1. Original Resume Text */}
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="h6" gutterBottom fontWeight="bold">Original Resume Text</Typography>
@@ -393,11 +390,11 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
                   <Paper variant="outlined" sx={{ p: 3, bgcolor: "background.default", maxHeight: '60vh', overflowY: 'auto' }}>
                     <ReactMarkdown
                       components={{
-                        h1: ({node, ...props}) => <Typography variant="h4" gutterBottom {...props} />,
-                        h2: ({node, ...props}) => <Typography variant="h5" gutterBottom {...props} />,
-                        h3: ({node, ...props}) => <Typography variant="h6" gutterBottom {...props} />,
-                        p: ({node, ...props}) => <Typography variant="body1" paragraph {...props} />,
-                        li: ({node, ...props}) => <li style={{ marginBottom: '8px' }}><Typography variant="body1" component="span" {...props} /></li>,
+                        h1: ({ node, ...props }) => <Typography variant="h4" gutterBottom {...props} />,
+                        h2: ({ node, ...props }) => <Typography variant="h5" gutterBottom {...props} />,
+                        h3: ({ node, ...props }) => <Typography variant="h6" gutterBottom {...props} />,
+                        p: ({ node, ...props }) => <Typography variant="body1" paragraph {...props} />,
+                        li: ({ node, ...props }) => <li style={{ marginBottom: '8px' }}><Typography variant="body1" component="span" {...props} /></li>,
                       }}
                     >
                       {optimizedText}

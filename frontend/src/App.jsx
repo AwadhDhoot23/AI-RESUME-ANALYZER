@@ -126,32 +126,32 @@ const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
 
 // --- NEW UTILITY FUNCTION: Centralize Firestore save logic (READY FOR TASK 4) ---
 const saveAnalysisToFirestore = async (analysisResultData, jobDesc, file, user, db, enqueueSnackbar) => {
-    if (!user) return;
+  if (!user) return;
 
-    try {
-        await addDoc(collection(db, "history"), {
-          ...analysisResultData,
-          job_description: jobDesc,
-          resume_filename: file.name,
-          uid: user.uid,
-          timestamp: serverTimestamp()
-        });
-        
-        enqueueSnackbar('Analysis complete and saved!', { variant: 'success' });
+  try {
+    await addDoc(collection(db, "history"), {
+      ...analysisResultData,
+      job_description: jobDesc,
+      resume_filename: file.name,
+      uid: user.uid,
+      timestamp: serverTimestamp()
+    });
 
-    } catch (dbError) {
-        console.error("Firestore save error: ", dbError);
-        enqueueSnackbar("Analysis complete, but failed to save to cloud.", { variant: 'warning' });
-    }
+    enqueueSnackbar('Analysis complete and saved!', { variant: 'success' });
+
+  } catch (dbError) {
+    console.error("Firestore save error: ", dbError);
+    enqueueSnackbar("Analysis complete, but failed to save to cloud.", { variant: 'warning' });
+  }
 };
 // -----------------------------------------------------------------------------
 
 
 const App = () => {
   const { enqueueSnackbar } = useSnackbar();
-  
+
   const authFormRef = useRef(null);
-  
+
   const [file, setFile] = useState(null);
   const [jobDesc, setJobDesc] = useState("");
   const [loading, setLoading] = useState(false);
@@ -162,11 +162,11 @@ const App = () => {
   const [themeMode, setThemeMode] = useState( // UPDATED STATE NAME
     localStorage.getItem("themeMode") || 'dark'
   );
-  
+
   // NOTE: Tab index 4 is now reserved for the Feedback tab
   const [tabIndex, setTabIndex] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
-  
+
   // --- NEW: State for desktop sidebar expansion ---
   const [drawerOpen, setDrawerOpen] = useState(true);
 
@@ -176,7 +176,7 @@ const App = () => {
   const [password, setPassword] = useState("");
   const [forgotOpen, setForgotOpen] = useState(false);
   const [resetUsername, setResetUsername] = useState("");
-  
+
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState(null);
 
@@ -190,14 +190,14 @@ const App = () => {
   const [historySortBy, setHistorySortBy] = useState('timestamp'); // 'timestamp' or 'skill_match'
   const [historyScoreFilter, setHistoryScoreFilter] = useState('all'); // 'all', 'excellent', 'moderate', 'needs_improvement'
   // ------------------------------------------
-  
+
   // --- NEW STATE: Control which section is visible on the unauthorized screen ---
   const [showAuthSection, setShowAuthSection] = useState(false);
 
   // --- NEW STATES FOR UNIQUE SETTINGS (Replacing previous unique settings) ---
   const [defaultTab, setDefaultTab] = useState(localStorage.getItem('defaultTab') || '0'); // '0' for Dashboard, '1' for Analyze
   const [showHistoryPreview, setShowHistoryPreview] = useState(localStorage.getItem('showHistoryPreview') === 'true' || true); // Toggle preview visibility
-  
+
   // --- NEW STATE FOR ONBOARDING ---
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -218,7 +218,7 @@ const App = () => {
         enqueueSnackbar('Login Successful!', { variant: 'success' });
         const storedDefaultTab = localStorage.getItem('defaultTab');
         setTabIndex(parseInt(storedDefaultTab) || 0);
-      }) 
+      })
       .catch(() => {
         enqueueSnackbar("Invalid credentials.", { variant: 'error' });
       });
@@ -239,12 +239,12 @@ const App = () => {
         const uid = userCredential.user.uid;
         const userDocRef = doc(db, "users", uid);
         await setDoc(userDocRef, {
-            email: email,
-            displayName: displayName,
-            createdAt: serverTimestamp(),
-            onboardingComplete: false,
+          email: email,
+          displayName: displayName,
+          createdAt: serverTimestamp(),
+          onboardingComplete: false,
         });
-        
+
         enqueueSnackbar("Signup successful! Please log in.", { variant: 'success' });
         setShowSignup(false);
         setPassword("");
@@ -262,31 +262,31 @@ const App = () => {
     try {
       const userDocRef = doc(db, "users", uid);
       const userDoc = await getDoc(userDocRef);
-      
+
       if (userDoc.exists()) {
-         const data = userDoc.data();
-         setDisplayName(data.displayName || data.email || "User");
-         
-         // --- ONBOARDING CHECK ---
-         if (data.onboardingComplete !== true) {
-            setShowOnboarding(true);
-         }
-         // ------------------------
+        const data = userDoc.data();
+        setDisplayName(data.displayName || data.email || "User");
+
+        // --- ONBOARDING CHECK ---
+        if (data.onboardingComplete !== true) {
+          setShowOnboarding(true);
+        }
+        // ------------------------
 
       } else {
-         // Create the user document if it doesn't exist (initial login)
-         const initialName = user?.email || "User";
-         // FIX: Check if user exists before attempting to setDoc
-         if (user) {
-            await setDoc(userDocRef, {
-                email: user.email,
-                displayName: initialName, // Default to email as display name
-                createdAt: serverTimestamp(),
-                onboardingComplete: false, // Set initial onboarding status
-            });
-         }
-         setDisplayName(initialName);
-         setShowOnboarding(true); // Show onboarding for brand new users
+        // Create the user document if it doesn't exist (initial login)
+        const initialName = user?.email || "User";
+        // FIX: Check if user exists before attempting to setDoc
+        if (user) {
+          await setDoc(userDocRef, {
+            email: user.email,
+            displayName: initialName, // Default to email as display name
+            createdAt: serverTimestamp(),
+            onboardingComplete: false, // Set initial onboarding status
+          });
+        }
+        setDisplayName(initialName);
+        setShowOnboarding(true); // Show onboarding for brand new users
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -302,7 +302,7 @@ const App = () => {
         where("uid", "==", uid),
         orderBy("timestamp", "desc")
       );
-      
+
       const querySnapshot = await getDocs(q);
       const userHistory = [];
       querySnapshot.forEach((doc) => {
@@ -329,20 +329,20 @@ const App = () => {
       if (currentUser) {
         // IMPORTANT: Only set the default tab if the user wasn't previously logged in (user === null)
         const initialLoad = user === null;
-        
+
         setUser(currentUser);
         // We keep track of the display name separate from the auth email
         setDisplayName(currentUser.displayName || currentUser.email);
         fetchHistory(currentUser.uid);
         fetchUserProfile(currentUser.uid);
-        
+
         // --- NEW: Apply default tab setting ONLY ON INITIAL LOAD ---
         const storedDefaultTab = localStorage.getItem('defaultTab');
         if (storedDefaultTab !== null && initialLoad) {
-            setTabIndex(parseInt(storedDefaultTab));
+          setTabIndex(parseInt(storedDefaultTab));
         }
         // -----------------------------------------------------------
-        
+
       } else {
         setUser(null);
         setHistory([]);
@@ -351,6 +351,7 @@ const App = () => {
       }
     });
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeMode, fetchHistory, fetchUserProfile]); // Fixed: Removed `handleLogin` and added missing dependencies
 
   // --- NEW: ONBOARDING COMPLETION HANDLER ---
@@ -358,92 +359,92 @@ const App = () => {
     if (!user) return;
 
     try {
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, { onboardingComplete: true });
-        setShowOnboarding(false);
-        setTabIndex(startTab); // Optionally switch to the Analyze tab (index 1)
-        enqueueSnackbar('Welcome aboard! Let’s get started.', { variant: 'success' });
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, { onboardingComplete: true });
+      setShowOnboarding(false);
+      setTabIndex(startTab); // Optionally switch to the Analyze tab (index 1)
+      enqueueSnackbar('Welcome aboard! Let’s get started.', { variant: 'success' });
     } catch (error) {
-        console.error("Error setting onboarding complete status:", error);
-        setShowOnboarding(false); // Close anyway if update fails
+      console.error("Error setting onboarding complete status:", error);
+      setShowOnboarding(false); // Close anyway if update fails
     }
   };
 
   // --- NEW: FEEDBACK SUBMISSION LOGIC ---
   const handleFeedbackSubmit = async () => {
     if (!user) {
-        enqueueSnackbar("Please log in to submit feedback.", { variant: 'warning' });
-        return;
+      enqueueSnackbar("Please log in to submit feedback.", { variant: 'warning' });
+      return;
     }
     if (!feedbackText.trim()) {
-        enqueueSnackbar("Please enter your feedback.", { variant: 'warning' });
-        return;
+      enqueueSnackbar("Please enter your feedback.", { variant: 'warning' });
+      return;
     }
 
     try {
-        await addDoc(collection(db, "feedback"), {
-            uid: user.uid,
-            displayName: displayName,
-            type: feedbackType,
-            rating: feedbackRating,
-            text: feedbackText,
-            timestamp: serverTimestamp()
-        });
-        
-        enqueueSnackbar(`Thank you for your ${feedbackType}! We value your input.`, { variant: 'success' });
-        setFeedbackText("");
-        setFeedbackRating(5);
-        setFeedbackType('Suggestion');
+      await addDoc(collection(db, "feedback"), {
+        uid: user.uid,
+        displayName: displayName,
+        type: feedbackType,
+        rating: feedbackRating,
+        text: feedbackText,
+        timestamp: serverTimestamp()
+      });
+
+      enqueueSnackbar(`Thank you for your ${feedbackType}! We value your input.`, { variant: 'success' });
+      setFeedbackText("");
+      setFeedbackRating(5);
+      setFeedbackType('Suggestion');
     } catch (error) {
-        console.error("Error submitting feedback:", error);
-        enqueueSnackbar("Failed to submit feedback to the cloud.", { variant: 'error' });
+      console.error("Error submitting feedback:", error);
+      enqueueSnackbar("Failed to submit feedback to the cloud.", { variant: 'error' });
     }
   };
 
 
   // --- USERNAME HANDLER ---
   const handleChangeDisplayName = async () => {
-      if (!user) return;
-      const cleanName = newDisplayName.trim();
-      if (cleanName.length < 3) {
-          enqueueSnackbar("Display name must be at least 3 characters.", { variant: 'warning' });
-          return;
-      }
-      
-      try {
-          const userDocRef = doc(db, "users", user.uid);
-          await updateDoc(userDocRef, { displayName: cleanName });
-          setDisplayName(cleanName);
-          setChangeDisplayNameOpen(false);
-          enqueueSnackbar('Display name updated successfully!', { variant: 'success' });
-      } catch (error) {
-          console.error("Error updating display name:", error);
-          enqueueSnackbar('Failed to update display name.', { variant: 'error' });
-      }
+    if (!user) return;
+    const cleanName = newDisplayName.trim();
+    if (cleanName.length < 3) {
+      enqueueSnackbar("Display name must be at least 3 characters.", { variant: 'warning' });
+      return;
+    }
+
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, { displayName: cleanName });
+      setDisplayName(cleanName);
+      setChangeDisplayNameOpen(false);
+      enqueueSnackbar('Display name updated successfully!', { variant: 'success' });
+    } catch (error) {
+      console.error("Error updating display name:", error);
+      enqueueSnackbar('Failed to update display name.', { variant: 'error' });
+    }
   };
 
 
   // --- NEW HANDLER: DELETE SINGLE HISTORY ITEM (unchanged logic) ---
   const handleDeleteHistoryItem = async (id, filename) => {
-      // Note: Using window.prompt instead of confirm due to sandbox restrictions
-      const confirmation = window.prompt(`Type 'DELETE' to confirm deleting analysis for "${filename}":`);
-      if (confirmation !== 'DELETE') {
-          enqueueSnackbar("Deletion cancelled.", { variant: 'info' });
-          return;
-      }
+    // Note: Using window.prompt instead of confirm due to sandbox restrictions
+    const confirmation = window.prompt(`Type 'DELETE' to confirm deleting analysis for "${filename}":`);
+    if (confirmation !== 'DELETE') {
+      enqueueSnackbar("Deletion cancelled.", { variant: 'info' });
+      return;
+    }
 
-      try {
-          const docRef = doc(db, "history", id);
-          await deleteDoc(docRef);
+    try {
+      const docRef = doc(db, "history", id);
+      await deleteDoc(docRef);
 
-          // Update local state by filtering out the deleted item
-          setHistory(prevHistory => prevHistory.filter(h => h.id !== id));
-          enqueueSnackbar(`Successfully deleted analysis for "${filename}".`, { variant: 'success' });
+      // Update local state by filtering out the deleted item
+      setHistory(prevHistory => prevHistory.filter(h => h.id !== id));
+      enqueueSnackbar(`Successfully deleted analysis for "${filename}".`, { variant: 'success' });
 
-      } catch (e) {
-          console.error("Error deleting history item:", e);
-          enqueueSnackbar("Failed to delete history item.", { variant: 'error' });
-      }
+    } catch (e) {
+      console.error("Error deleting history item:", e);
+      enqueueSnackbar("Failed to delete history item.", { variant: 'error' });
+    }
   };
 
 
@@ -476,38 +477,38 @@ const App = () => {
       });
   };
   // --- END AUTH HANDLERS ---
-  
+
   // --- NEW: Handle clearing cloud history (unchanged logic) ---
   const handleClearCloudHistory = async () => {
     if (!user) {
-        enqueueSnackbar("You must be logged in to clear history.", { variant: 'warning' });
-        return;
+      enqueueSnackbar("You must be logged in to clear history.", { variant: 'warning' });
+      return;
     }
 
     // A simple, visual way to confirm without using the forbidden `confirm()`
     const confirmation = window.prompt("Type 'YES' to confirm deleting ALL cloud history:");
     if (confirmation !== 'YES') {
-        enqueueSnackbar("Deletion cancelled.", { variant: 'info' });
-        return;
+      enqueueSnackbar("Deletion cancelled.", { variant: 'info' });
+      return;
     }
 
     try {
-        const q = query(collection(db, "history"), where("uid", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-        
-        let deletePromises = [];
-        querySnapshot.forEach((doc) => {
-            deletePromises.push(deleteDoc(doc.ref));
-        });
-        
-        await Promise.all(deletePromises);
-        
-        setHistory([]); // Clear local state immediately
-        enqueueSnackbar('Successfully deleted all cloud history!', { variant: 'success' });
+      const q = query(collection(db, "history"), where("uid", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+
+      let deletePromises = [];
+      querySnapshot.forEach((doc) => {
+        deletePromises.push(deleteDoc(doc.ref));
+      });
+
+      await Promise.all(deletePromises);
+
+      setHistory([]); // Clear local state immediately
+      enqueueSnackbar('Successfully deleted all cloud history!', { variant: 'success' });
 
     } catch (e) {
-        console.error("Error clearing cloud history:", e);
-        enqueueSnackbar("Failed to clear cloud history.", { variant: 'error' });
+      console.error("Error clearing cloud history:", e);
+      enqueueSnackbar("Failed to clear cloud history.", { variant: 'error' });
     }
   };
 
@@ -516,7 +517,7 @@ const App = () => {
     setSelectedHistory(historyItem);
     setHistoryModalOpen(true);
   };
-  
+
   const handleHistoryModalClose = () => {
     setHistoryModalOpen(false);
     setSelectedHistory(null);
@@ -524,7 +525,7 @@ const App = () => {
 
   // Placeholder function that now redirects to Settings
   const openProfile = () => { setTabIndex(3); };
-  
+
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
   // --- NEW HANDLER for desktop sidebar toggle ---
@@ -540,7 +541,7 @@ const App = () => {
     localStorage.setItem('defaultTab', newVal);
     enqueueSnackbar(`Default starting tab set to ${newVal === '0' ? 'Dashboard' : 'Analyze'}.`, { variant: 'info' });
   };
-  
+
   const handleShowHistoryPreviewChange = (event) => {
     const isChecked = event.target.checked;
     setShowHistoryPreview(isChecked);
@@ -555,7 +556,7 @@ const App = () => {
     localStorage.setItem('themeMode', newMode);
     enqueueSnackbar(`Theme set to ${newMode}.`, { variant: 'info' });
   }
-  
+
   // --- UPDATED theme object (Adding Sepia Mode) ---
   const theme = createTheme({
     palette: {
@@ -632,14 +633,14 @@ const App = () => {
     setLoading(true);
     setResult(null);
     setCurrentResumeText("");
-    
+
     let analysisResultData;
 
     try {
       const res = await axios.post(`${apiUrl}/analyze_resume/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      
+
       const now = new Date();
       const timestamp = `${String(now.getDate()).padStart(2, "0")}-${String(
         now.getMonth() + 1
@@ -653,7 +654,7 @@ const App = () => {
       analysisResultData = res.data;
       setCurrentResumeText(res.data.resume_text);
       setResult(normalized);
-      
+
     } catch (e) {
       console.error(e);
       const errorMsg = e.response?.data?.detail || "Error analyzing resume. Check backend connection.";
@@ -664,45 +665,45 @@ const App = () => {
 
     // --- REFACTORED: Use centralized utility function ---
     if (analysisResultData && user) {
-        await saveAnalysisToFirestore(analysisResultData, jobDesc, file, user, db, enqueueSnackbar);
-        await fetchHistory(user.uid);
+      await saveAnalysisToFirestore(analysisResultData, jobDesc, file, user, db, enqueueSnackbar);
+      await fetchHistory(user.uid);
     }
     // --------------------------------------------------
-    
+
     setLoading(false);
   };
 
 
   // handleDownloadPDF (Updated logic for detailed PDF with THEMES)
-const handleDownloadPDF = () => {
+  const handleDownloadPDF = () => {
     if (!result) return;
 
     // --- NEW: Theme Definitions ---
     const isDark = pdfTheme === 'dark';
     const bgColor = isDark ? '#1E1E1E' : '#FFFFFF';
     const textColor = isDark ? '#F0F4F8' : '#000000';
-    const primaryColor = isDark ? '#FFC107' : '#1976D2'; 
+    const primaryColor = isDark ? '#FFC107' : '#1976D2';
     const tableTheme = isDark ? 'striped' : 'grid';
     const tableHeadColor = isDark ? primaryColor : primaryColor;
     const tableHeadTextColor = isDark ? '#000000' : '#FFFFFF';
     const tableSubtleBg = isDark ? '#2a2a2a' : '#f9f9f9';
-    
+
     // --- TRACKER: Keep track of pages we have already painted dark ---
     // We start with 1 because we manually paint Page 1 below.
-    const paintedPages = new Set([1]); 
+    const paintedPages = new Set([1]);
 
     try {
       const pdf = new jsPDF("p", "mm", "a4");
-      
+
       // --- 1. Paint the First Page Manually ---
       pdf.setFillColor(bgColor);
       pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F');
-      
+
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(18);
       pdf.setTextColor(textColor);
       pdf.text("AI Resume Analysis Report", 14, 20);
-      
+
       pdf.setFontSize(11);
       pdf.setFont("helvetica", "normal");
       pdf.setTextColor(textColor);
@@ -711,34 +712,34 @@ const handleDownloadPDF = () => {
         now.getMonth() + 1
       ).padStart(2, "0")}-${now.getFullYear()} ${now.toLocaleTimeString("en-IN")}`;
       pdf.text(`Generated on: ${indianDate}`, 14, 30);
-      
+
       pdf.setFontSize(13);
       pdf.setTextColor(primaryColor);
       pdf.text(`Skill Match: ${result.skill_match || 0}%`, 14, 40);
-      
+
       pdf.setTextColor(textColor);
       pdf.setFont("helvetica", "bold");
       pdf.text("Summary", 14, 50);
-      
+
       pdf.setFont("helvetica", "normal");
       const summaryStartY = 56;
       const wrappedSummary = pdf.splitTextToSize(result.summary || "No summary available.", 180);
       pdf.text(wrappedSummary, 14, summaryStartY);
-      
+
       let currentY = summaryStartY + wrappedSummary.length * 6;
-      
+
       const missing_skills = Array.isArray(result.missing_skills) ? result.missing_skills : [];
       const strengths = Array.isArray(result.strengths) ? result.strengths : [];
       const weaknesses = Array.isArray(result.weaknesses) ? result.weaknesses : [];
       const suggestions = Array.isArray(result.suggestions) ? result.suggestions : [];
-      
+
       // --- NEW: Define shared table styles with Robust Background Logic ---
       const tableStyles = {
         theme: tableTheme,
         styles: {
           fontSize: 10,
           textColor: textColor,
-          fillColor: bgColor 
+          fillColor: bgColor
         },
         headStyles: {
           fillColor: tableHeadColor,
@@ -755,7 +756,7 @@ const handleDownloadPDF = () => {
           if (isDark && !paintedPages.has(data.pageNumber)) {
             pdf.setFillColor(bgColor);
             pdf.rect(0, 0, pdf.internal.pageSize.width, pdf.internal.pageSize.height, 'F');
-            
+
             // Mark this page as painted so we don't paint over it again 
             // if another table starts on the same page.
             paintedPages.add(data.pageNumber);
@@ -814,9 +815,9 @@ const handleDownloadPDF = () => {
       const pageHeight = pdf.internal.pageSize.height;
       // Ensure footer is visible on the last page by setting color
       pdf.setFontSize(10);
-      pdf.setTextColor(textColor); 
+      pdf.setTextColor(textColor);
       pdf.text("Generated by RESUMIFYY   |   © 2025 Awadh Projects", 20, pageHeight - 10);
-      
+
       pdf.save("AI_Resume_Analysis_Report.pdf");
       enqueueSnackbar('Downloading PDF...', { variant: 'info' });
     } catch (e) {
@@ -828,41 +829,41 @@ const handleDownloadPDF = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-  
+
   // ---
   // ---
   // --- START OF REFACTORED DRAWER CONTENT ---
   // ---
   // ---
-  
+
   // --- 1. MOBILE DRAWER CONTENT (Always expanded, uses mobile handlers) ---
   const mobileDrawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 1 }}>
       <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, pt: 3, pb: 1 }}>
-        
+
         {/* Mobile: Logo is always visible */}
         <Box display="flex" alignItems="center">
-           <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
-              <img
-                  src={Logo}
-                  alt="Logo"
-                  style={{ height: '100%', width: 'auto', display: 'block' }}
-              />
+          <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
+            <img
+              src={Logo}
+              alt="Logo"
+              style={{ height: '100%', width: 'auto', display: 'block' }}
+            />
           </Box>
           <Typography variant="h5" fontWeight="bold">
-              RESUMIFYY
+            RESUMIFYY
           </Typography>
         </Box>
 
         {/* Mobile: Close button uses handleDrawerToggle */}
         <IconButton onClick={handleDrawerToggle} edge="start" sx={{ color: 'var(--accent-gold)' }}>
-            <ChevronLeftIcon />
+          <ChevronLeftIcon />
         </IconButton>
       </Toolbar>
       <Divider />
-      
+
       {/* Mobile: List is always expanded */}
-      <List sx={{p: 1, flexGrow: 1 }}>
+      <List sx={{ p: 1, flexGrow: 1 }}>
         {[
           { text: "Dashboard", icon: <DashboardIcon />, index: 0 },
           { text: "Analyze", icon: <TroubleshootIcon />, index: 1 },
@@ -895,49 +896,49 @@ const handleDownloadPDF = () => {
           </ListItem>
         ))}
       </List>
-      
+
       {/* Mobile: Footer is always visible */}
       <Box className="sidebar-footer" sx={{
-          opacity: 1, // Always 1
-          transition: 'opacity 0.3s',
+        opacity: 1, // Always 1
+        transition: 'opacity 0.3s',
       }}>
         {/* Profile Box */}
         <Box className="sidebar-profile-box" sx={{
-            px: '16px',
-            pb: '8px', 
+          px: '16px',
+          pb: '8px',
         }}>
           <Box
-              display="flex"
-              alignItems="center"
-              gap={2}
-              onClick={openProfile}
-              sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }} 
+            display="flex"
+            alignItems="center"
+            gap={2}
+            onClick={openProfile}
+            sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }}
           >
             <Avatar
               sx={{
-                  width: 40,
-                  height: 40,
-                  cursor: 'pointer',
-                  border: '3px solid transparent', 
+                width: 40,
+                height: 40,
+                cursor: 'pointer',
+                border: '3px solid transparent',
               }}
             />
             <Box sx={{ overflow: 'hidden' }}>
               <Typography variant="subtitle2" noWrap>{displayName || "Loading..."}</Typography>
-              <Box sx={{p: 0, m: 0, textTransform: 'none', justifyContent: 'flex-start' }}>
-                  <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
-                      Signed In
-                  </Typography>
+              <Box sx={{ p: 0, m: 0, textTransform: 'none', justifyContent: 'flex-start' }}>
+                <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
+                  Signed In
+                </Typography>
               </Box>
             </Box>
           </Box>
         </Box>
-        
+
         {/* LOGOUT BUTTON */}
         <Box className="logout-box" sx={{
-            padding: '16px', // Always '16px'
-            transition: 'padding 0.3s',
-            pt: 0,
-            borderTop: '1px solid transparent',
+          padding: '16px', // Always '16px'
+          transition: 'padding 0.3s',
+          pt: 0,
+          borderTop: '1px solid transparent',
         }}>
           <Box sx={{ height: '20px' }} /> {/* Always 20px */}
           <Button
@@ -958,32 +959,32 @@ const handleDownloadPDF = () => {
   const desktopDrawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 1 }}>
       <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: drawerOpen ? 'space-between' : 'center', p: 2, pt: 3, pb: 1 }}>
-        
+
         {/* Desktop: Logo respects drawerOpen */}
         {drawerOpen && (
           <Box display="flex" alignItems="center">
-             <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
-                <img
-                    src={Logo}
-                    alt="Logo"
-                    style={{ height: '100%', width: 'auto', display: 'block' }}
-                />
+            <Box sx={{ width: 32, height: 32, mr: 1 }} className="sidebar-logo">
+              <img
+                src={Logo}
+                alt="Logo"
+                style={{ height: '100%', width: 'auto', display: 'block' }}
+              />
             </Box>
             <Typography variant="h5" fontWeight="bold">
-                RESUMIFYY
+              RESUMIFYY
             </Typography>
           </Box>
         )}
-        
+
         {/* Desktop: Toggle button respects drawerOpen and uses desktop handler */}
         <IconButton onClick={handleDrawerDesktopToggle} edge="start" sx={{ ml: drawerOpen ? 0 : '-8px', color: 'var(--accent-gold)' }}>
-            {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
+          {drawerOpen ? <ChevronLeftIcon /> : <MenuIcon />}
         </IconButton>
       </Toolbar>
       <Divider />
-      
+
       {/* Desktop: List respects drawerOpen */}
-      <List sx={{p: 1, flexGrow: 1 }}>
+      <List sx={{ p: 1, flexGrow: 1 }}>
         {[
           { text: "Dashboard", icon: <DashboardIcon />, index: 0 },
           { text: "Analyze", icon: <TroubleshootIcon />, index: 1 },
@@ -1016,49 +1017,49 @@ const handleDownloadPDF = () => {
           </ListItem>
         ))}
       </List>
-      
+
       {/* Desktop: Footer respects drawerOpen */}
       <Box className="sidebar-footer" sx={{
-          opacity: drawerOpen ? 1 : 0, // Respects drawerOpen
-          transition: 'opacity 0.3s',
+        opacity: drawerOpen ? 1 : 0, // Respects drawerOpen
+        transition: 'opacity 0.3s',
       }}>
         {/* Profile Box */}
         <Box className="sidebar-profile-box" sx={{
-            px: '16px',
-            pb: '8px', 
+          px: '16px',
+          pb: '8px',
         }}>
           <Box
-              display="flex"
-              alignItems="center"
-              gap={2}
-              onClick={openProfile}
-              sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }} 
+            display="flex"
+            alignItems="center"
+            gap={2}
+            onClick={openProfile}
+            sx={{ cursor: 'pointer', pt: 1, pb: 1.5, borderTop: '1px solid transparent' }}
           >
             <Avatar
               sx={{
-                  width: 40,
-                  height: 40,
-                  cursor: 'pointer',
-                  border: '3px solid transparent', 
+                width: 40,
+                height: 40,
+                cursor: 'pointer',
+                border: '3px solid transparent',
               }}
             />
             <Box sx={{ overflow: 'hidden' }}>
               <Typography variant="subtitle2" noWrap>{displayName || "Loading..."}</Typography>
-              <Box sx={{p: 0, m: 0, textTransform: 'none', justifyContent: 'flex-start' }}>
-                  <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
-                      Signed In
-                  </Typography>
+              <Box sx={{ p: 0, m: 0, textTransform: 'none', justifyContent: 'flex-start' }}>
+                <Typography variant="caption" sx={{ color: 'var(--text-secondary)' }}>
+                  Signed In
+                </Typography>
               </Box>
             </Box>
           </Box>
         </Box>
-        
+
         {/* LOGOUT BUTTON */}
         <Box className="logout-box" sx={{
-            padding: drawerOpen ? '16px' : '10px 10px 16px', // Respects drawerOpen
-            transition: 'padding 0.3s',
-            pt: 0,
-            borderTop: '1px solid transparent', 
+          padding: drawerOpen ? '16px' : '10px 10px 16px', // Respects drawerOpen
+          transition: 'padding 0.3s',
+          pt: 0,
+          borderTop: '1px solid transparent',
         }}>
           <Box sx={{ height: drawerOpen ? '20px' : '0px' }} /> {/* Respects drawerOpen */}
           <Button
@@ -1074,7 +1075,7 @@ const handleDownloadPDF = () => {
       </Box>
     </Box>
   );
-  
+
   // ---
   // ---
   // --- END OF REFACTORED DRAWER CONTENT ---
@@ -1129,22 +1130,22 @@ const handleDownloadPDF = () => {
   // --- NEW HANDLER: RESET LOCAL DATA ---
   const handleResetLocalData = async () => {
     try {
-        // Clear local storage items, including the new ones
-        localStorage.removeItem('themeMode'); // Changed from darkMode
-        localStorage.removeItem('defaultTab');
-        localStorage.removeItem('showHistoryPreview');
-        
-        // Log the user out using Firebase Auth
-        await signOut(auth);
-        
-        enqueueSnackbar('Local data cleared. You have been logged out.', { variant: 'success' });
-        
-        // Force a full reload to ensure a complete UI reset
-        window.location.reload();
-        
+      // Clear local storage items, including the new ones
+      localStorage.removeItem('themeMode'); // Changed from darkMode
+      localStorage.removeItem('defaultTab');
+      localStorage.removeItem('showHistoryPreview');
+
+      // Log the user out using Firebase Auth
+      await signOut(auth);
+
+      enqueueSnackbar('Local data cleared. You have been logged out.', { variant: 'success' });
+
+      // Force a full reload to ensure a complete UI reset
+      window.location.reload();
+
     } catch (error) {
-        console.error("Error resetting local data/logging out:", error);
-        enqueueSnackbar("Error resetting data. Please log out manually.", { variant: 'error' });
+      console.error("Error resetting local data/logging out:", error);
+      enqueueSnackbar("Error resetting data. Please log out manually.", { variant: 'error' });
     }
   };
   // -------------------------------------
@@ -1157,388 +1158,388 @@ const handleDownloadPDF = () => {
   // -----------------------------
 
 
-// ---------- LOGIN UI (Dynamic Landing Page) ----------
-  
-if (!user)
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      
-      {/* Outer Container: Set height to 100vh and overflow to hidden */}
-      <Box
-        sx={{
-          height: '100vh', // <--- FIXED HEIGHT
-          overflow: 'hidden', // <--- DISABLES SCROLLING
-          position: 'relative', // For absolute positioning of sections
-          // backgroundColor: themeMode === 'dark' ? '#121212' : (themeMode === 'sepia' ? "#FBF0D9" : "#f4f6f8"), // <-- REMOVED
-          color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"), // FIX: Use themeMode
-          transition: 'background-color 0.3s ease, color 0.3s ease'
-        }}
-      >
-        
-        {/* --- 1. NEW: VIDEO BACKGROUND --- */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          
-          src="/background.mp4" // <-- Assumes 'background.mp4' is in your /public folder
-          style={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            left: '50%',
-            top: '50%',
-            objectFit: 'cover',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 0 // <-- Behind everything
-          }}
-        />
-        
-        {/* --- 2. NEW: SEMI-TRANSPARENT OVERLAY --- */}
-        {/* This darkens the video so text is easier to read */}
+  // ---------- LOGIN UI (Dynamic Landing Page) ----------
+
+  if (!user)
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+
+        {/* Outer Container: Set height to 100vh and overflow to hidden */}
         <Box
           sx={{
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            left: 0,
-            top: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust opacity as needed
-            zIndex: 1 // <-- On top of video, behind content
-          }}
-        />
-        {/* --- END NEW ADDITIONS --- */}
-
-
-        {/* --- THEME TOGGLE (Top Right Corner - Select Control) --- */}
-        <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 20, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography
-            variant="body2"
-            fontWeight="medium"
-            sx={{
-              color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"),
-            }}
-          >
-            Theme:
-          </Typography>
-          <Select
-            size="small"
-            value={themeMode}
-            onChange={handleThemeModeChange}
-            sx={{
-              minWidth: 120,
-              backgroundColor: themeMode === 'dark' ? '#252525ff' : (themeMode === 'sepia' ? "#E6D8B6" : "#fff"),
-              color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"),
-              // Subtle border adjustment for visual polish on the login page
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: themeMode === 'dark' ? 'rgba(255, 193, 7, 0.4)' : (themeMode === 'sepia' ? 'rgba(75, 55, 28, 0.5)' : 'rgba(0, 0, 0, 0.2)'),
-              },
-            }}
-          >
-            <MenuItem value="light">☀️ Light</MenuItem>
-            <MenuItem value="dark">🌑 Dark</MenuItem>
-          </Select>
-        </Box>
-        {/* --- END THEME TOGGLE --- */}
-
-        {/* 1. HERO SECTION (Animated to slide out) */}
-        <Box
-          component={motion.div}
-          initial={{ x: 0, opacity: 1 }}
-          animate={{ x: showAuthSection ? '-100%' : 0, opacity: showAuthSection ? 0 : 1 }}
-          transition={{ duration: 0.5 }}
-          sx={{
-            height: '100%', // Take full height of parent Box
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            position: 'absolute', // Positioned absolutely within parent
-            top: 0,
-            left: 0,
-            zIndex: 10,
-            // --- MODIFICATION ---
-            backgroundColor: 'transparent', // <-- Make section transparent
-            // --------------------
-            transition: 'background-color 0.4s ease',
+            height: '100vh', // <--- FIXED HEIGHT
+            overflow: 'hidden', // <--- DISABLES SCROLLING
+            position: 'relative', // For absolute positioning of sections
+            // backgroundColor: themeMode === 'dark' ? '#121212' : (themeMode === 'sepia' ? "#FBF0D9" : "#f4f6f8"), // <-- REMOVED
+            color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"), // FIX: Use themeMode
+            transition: 'background-color 0.3s ease, color 0.3s ease'
           }}
         >
-          {/* Hero Content Container - CENTERED */}
+
+          {/* --- 1. NEW: VIDEO BACKGROUND --- */}
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+
+            src="/background.mp4" // <-- Assumes 'background.mp4' is in your /public folder
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              left: '50%',
+              top: '50%',
+              objectFit: 'cover',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 0 // <-- Behind everything
+            }}
+          />
+
+          {/* --- 2. NEW: SEMI-TRANSPARENT OVERLAY --- */}
+          {/* This darkens the video so text is easier to read */}
           <Box
             sx={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              left: 0,
+              top: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Adjust opacity as needed
+              zIndex: 1 // <-- On top of video, behind content
+            }}
+          />
+          {/* --- END NEW ADDITIONS --- */}
+
+
+          {/* --- THEME TOGGLE (Top Right Corner - Select Control) --- */}
+          <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 20, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography
+              variant="body2"
+              fontWeight="medium"
+              sx={{
+                color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"),
+              }}
+            >
+              Theme:
+            </Typography>
+            <Select
+              size="small"
+              value={themeMode}
+              onChange={handleThemeModeChange}
+              sx={{
+                minWidth: 120,
+                backgroundColor: themeMode === 'dark' ? '#252525ff' : (themeMode === 'sepia' ? "#E6D8B6" : "#fff"),
+                color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"),
+                // Subtle border adjustment for visual polish on the login page
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: themeMode === 'dark' ? 'rgba(255, 193, 7, 0.4)' : (themeMode === 'sepia' ? 'rgba(75, 55, 28, 0.5)' : 'rgba(0, 0, 0, 0.2)'),
+                },
+              }}
+            >
+              <MenuItem value="light">☀️ Light</MenuItem>
+              <MenuItem value="dark">🌑 Dark</MenuItem>
+            </Select>
+          </Box>
+          {/* --- END THEME TOGGLE --- */}
+
+          {/* 1. HERO SECTION (Animated to slide out) */}
+          <Box
+            component={motion.div}
+            initial={{ x: 0, opacity: 1 }}
+            animate={{ x: showAuthSection ? '-100%' : 0, opacity: showAuthSection ? 0 : 1 }}
+            transition={{ duration: 0.5 }}
+            sx={{
+              height: '100%', // Take full height of parent Box
+              width: '100%',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              textAlign: 'center',
-              p: 4,
-              maxWidth: 600,
-              mx: 'auto'
+              position: 'absolute', // Positioned absolutely within parent
+              top: 0,
+              left: 0,
+              zIndex: 10,
+              // --- MODIFICATION ---
+              backgroundColor: 'transparent', // <-- Make section transparent
+              // --------------------
+              transition: 'background-color 0.4s ease',
             }}
           >
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-              style={{
+            {/* Hero Content Container - CENTERED */}
+            <Box
+              sx={{
                 display: 'flex',
                 flexDirection: 'column',
+                justifyContent: 'center',
                 alignItems: 'center',
-                width: '100%'
+                textAlign: 'center',
+                p: 4,
+                maxWidth: 600,
+                mx: 'auto'
               }}
             >
-              {/* Logo (INCREASED SIZE) */}
-              <Box sx={{ width: { xs: 150, sm: 180 }, height: { xs: 150, sm: 180 }, mb: 3 }}>
-                <img
-                  src={Logo}
-                  alt="Resumifyy Logo"
-                  style={{ height: '100%', width: 'auto', display: 'block' }}
-                />
-              </Box>
-
-              {/* Project Name */}
-              <Typography
-                variant="h2"
-                fontWeight="bold"
-                sx={{
-                  color: '#FFC107',
-                  mb: 1,
-                  letterSpacing: 2,
-                  fontSize: { xs: '2.5rem', sm: '3.5rem' }
-                }}
-              >
-                RESUMIFYY
-              </Typography>
-
-              {/* Tagline */}
-              <Typography
-                variant="h5"
-                sx={{
-                  fontStyle: 'italic',
-                  color: '#dbd4d4ff', // FIX: Use themeMode
-                  fontSize: { xs: '1.2rem', sm: '1.5rem' }
-                }}
-              >
-                <strong>Stop Guessing. Start Matching.</strong>
-              </Typography>
-
-              {/* Description */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5, duration: 1 }}
-                style={{ width: '100%' }}
-              >
-                <Typography
-                  variant="body1"
-                  sx={{
-                    mt: 4,
-                    color:'#cfceceff' , // FIX: Use themeMode
-                    lineHeight: 1.7,
-                    fontSize: 18,
-                  }}
-                >
-                  <strong>The AI-powered platform designed to optimize your resume
-                  instantly, ensuring it passes modern Applicant Tracking
-                  Systems (ATS).</strong>
-                </Typography>
-              </motion.div>
-
-              {/* SCROLL DOWN BUTTON -> SWITCH STATE */}
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 2.0, duration: 0.8 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: '100%'
+                }}
               >
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="large"
-                  onClick={handleScrollToAuth}
-                  endIcon={<KeyboardArrowDownIcon />}
-                  sx={{
-                    mt: 6,
-                    py: 1.5,
-                    px: 4,
-                    fontSize: '1.1rem',
-                    backgroundColor: '#FFB300',
+                {/* Logo (INCREASED SIZE) */}
+                <Box sx={{ width: { xs: 150, sm: 180 }, height: { xs: 150, sm: 180 }, mb: 3 }}>
+                  <img
+                    src={Logo}
+                    alt="Resumifyy Logo"
+                    style={{ height: '100%', width: 'auto', display: 'block' }}
+                  />
+                </Box>
 
-                    color:'#000000ff',
-                    fontWeight: 700,
-                    '&:hover': {
-                    backgroundColor: '#FFB300'
-                    }
+                {/* Project Name */}
+                <Typography
+                  variant="h2"
+                  fontWeight="bold"
+                  sx={{
+                    color: '#FFC107',
+                    mb: 1,
+                    letterSpacing: 2,
+                    fontSize: { xs: '2.5rem', sm: '3.5rem' }
                   }}
                 >
-                  Get Started
-                </Button>
-              </motion.div>
-            </motion.div>
-          </Box>
-        </Box>
+                  RESUMIFYY
+                </Typography>
 
-        {/* 2. AUTH SECTION (Below the fold) - Animated to slide in */}
-        <Box
-          component={motion.div}
-          initial={{ x: '100%', opacity: 0 }}
-          animate={{ x: showAuthSection ? 0 : '100%', opacity: showAuthSection ? 1 : 0 }}
-          transition={{ duration: 0.5 }}
-          ref={authFormRef}
-          sx={{
-            height: '100%', // Take full height of parent Box
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            position: 'absolute', // Positioned absolutely within parent
-            top: 0,
-            left: 0,
-            zIndex: 15,
-            // --- MODIFICATION ---
-            backgroundColor: 'transparent', // <-- Make section transparent
-            // --------------------
-            transition: 'background-color 0.3s ease',
-            py: 8 // Responsive padding for content centering
-          }}
-        >
-          <Paper
+                {/* Tagline */}
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontStyle: 'italic',
+                    color: '#dbd4d4ff', // FIX: Use themeMode
+                    fontSize: { xs: '1.2rem', sm: '1.5rem' }
+                  }}
+                >
+                  <strong>Stop Guessing. Start Matching.</strong>
+                </Typography>
+
+                {/* Description */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.5, duration: 1 }}
+                  style={{ width: '100%' }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      mt: 4,
+                      color: '#cfceceff', // FIX: Use themeMode
+                      lineHeight: 1.7,
+                      fontSize: 18,
+                    }}
+                  >
+                    <strong>The AI-powered platform designed to optimize your resume
+                      instantly, ensuring it passes modern Applicant Tracking
+                      Systems (ATS).</strong>
+                  </Typography>
+                </motion.div>
+
+                {/* SCROLL DOWN BUTTON -> SWITCH STATE */}
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 2.0, duration: 0.8 }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    onClick={handleScrollToAuth}
+                    endIcon={<KeyboardArrowDownIcon />}
+                    sx={{
+                      mt: 6,
+                      py: 1.5,
+                      px: 4,
+                      fontSize: '1.1rem',
+                      backgroundColor: '#FFB300',
+
+                      color: '#000000ff',
+                      fontWeight: 700,
+                      '&:hover': {
+                        backgroundColor: '#FFB300'
+                      }
+                    }}
+                  >
+                    Get Started
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </Box>
+          </Box>
+
+          {/* 2. AUTH SECTION (Below the fold) - Animated to slide in */}
+          <Box
+            component={motion.div}
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: showAuthSection ? 0 : '100%', opacity: showAuthSection ? 1 : 0 }}
+            transition={{ duration: 0.5 }}
+            ref={authFormRef}
             sx={{
-              p: 4,
-              width: { xs: '90%', sm: 480 },
-              maxWidth: 480,
-              textAlign: 'center',
-              backgroundColor: themeMode === 'dark'
-  ? 'rgba(30, 30, 30, 0.8)'
-  : (themeMode === 'sepia'
-    ? 'rgba(255, 245, 224, 0.8)'
-    : 'rgba(255, 255, 255, 0.8)'),
-    backdropFilter: 'blur(12px)',
-              color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"), // FIX: Use themeMode
-              position: "relative",
-              zIndex: 5,
-              borderRadius: "25px"
+              height: '100%', // Take full height of parent Box
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'absolute', // Positioned absolutely within parent
+              top: 0,
+              left: 0,
+              zIndex: 15,
+              // --- MODIFICATION ---
+              backgroundColor: 'transparent', // <-- Make section transparent
+              // --------------------
+              transition: 'background-color 0.3s ease',
+              py: 8 // Responsive padding for content centering
             }}
           >
-            <motion.div
-              key={showSignup ? 'signup' : 'login'}
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
+            <Paper
+              sx={{
+                p: 4,
+                width: { xs: '90%', sm: 480 },
+                maxWidth: 480,
+                textAlign: 'center',
+                backgroundColor: themeMode === 'dark'
+                  ? 'rgba(30, 30, 30, 0.8)'
+                  : (themeMode === 'sepia'
+                    ? 'rgba(255, 245, 224, 0.8)'
+                    : 'rgba(255, 255, 255, 0.8)'),
+                backdropFilter: 'blur(12px)',
+                color: themeMode === 'dark' ? '#F0F4F8' : (themeMode === 'sepia' ? "#4B371C" : "#000"), // FIX: Use themeMode
+                position: "relative",
+                zIndex: 5,
+                borderRadius: "25px"
+              }}
             >
-              <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
-                <Avatar sx={{ width: 64, height: 64, bgcolor: '#FFC107' }} />
-              </Box>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
-                {showSignup ? 'Create Account' : 'Welcome Back'}
-              </Typography>
-              
-              {/* --- LOGIN/SIGNUP FIELDS --- */}
-              <TextField
-                label="Email (For Authentication)"
-                fullWidth
-                margin="normal"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                variant="outlined"
-              />
-              {showSignup && (
+              <motion.div
+                key={showSignup ? 'signup' : 'login'}
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
+              >
+                <Box display="flex" justifyContent="center" alignItems="center" gap={2} mb={2}>
+                  <Avatar sx={{ width: 64, height: 64, bgcolor: '#FFC107' }} />
+                </Box>
+                <Typography variant="h5" fontWeight="bold" gutterBottom>
+                  {showSignup ? 'Create Account' : 'Welcome Back'}
+                </Typography>
+
+                {/* --- LOGIN/SIGNUP FIELDS --- */}
                 <TextField
-                  label="Username (Display Name)"
+                  label="Email (For Authentication)"
                   fullWidth
                   margin="normal"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   variant="outlined"
-                  helperText="This name will be displayed in the app."
                 />
-              )}
-              <TextField
-                label="Password"
-                type="password"
-                fullWidth
-                margin="normal"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                variant="outlined"
-              />
-              {/* --- END LOGIN/SIGNUP FIELDS --- */}
-              
-              {showSignup && (
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  display="block"
-                  sx={{ mt: 1 }}
-                >
-                  Password must be at least 6 characters.
-                </Typography>
-              )}
-              {showSignup ? (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleSignup}
-                  sx={{ mt: 2, backgroundColor: '#FFC107', color: '#000' }}
-                >
-                  Create Account
-                </Button>
-              ) : (
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleLogin}
-                  sx={{ mt:3 , backgroundColor: '#eabd0bff', color: '#131313ff' }}
-                >
-                  Login to Resumifyy
-                </Button>
-              )}
-              {!showSignup && (
-                <Button
-                  size="small"
-                  sx={{ mt: 3, color: '#FFC107', fontSize:18}}
-                  onClick={() => setForgotOpen(true)}
-                >
-                  Forgot Password?
-                </Button>
-              )}
-              <Box mt={2}>
-                <Button
-                  size="small"
-                  onClick={() => setShowSignup(!showSignup)}
-                  sx={{ color: '#FFC107' ,fontSize:18}}
-                >
-                  {showSignup ? 'Back to Login' : "Don't have an account?  Sign Up"}
-                </Button>
-              </Box>
-
-              {/* Password Reset Dialog */}
-              <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)}>
-                <DialogTitle>Reset Password</DialogTitle>
-                <DialogContent>
+                {showSignup && (
                   <TextField
-                    label="Enter your Email"
+                    label="Username (Display Name)"
                     fullWidth
-                    margin="dense"
-                    value={resetUsername}
-                    onChange={(e) => setResetUsername(e.target.value)}
-                    helperText="We will send a password reset link to this email."
+                    margin="normal"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    variant="outlined"
+                    helperText="This name will be displayed in the app."
                   />
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={() => setForgotOpen(false)}>Cancel</Button>
-                  <Button onClick={handleForgotPassword} variant="contained">
-                    Send Reset Email
+                )}
+                <TextField
+                  label="Password"
+                  type="password"
+                  fullWidth
+                  margin="normal"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  variant="outlined"
+                />
+                {/* --- END LOGIN/SIGNUP FIELDS --- */}
+
+                {showSignup && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    display="block"
+                    sx={{ mt: 1 }}
+                  >
+                    Password must be at least 6 characters.
+                  </Typography>
+                )}
+                {showSignup ? (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={handleSignup}
+                    sx={{ mt: 2, backgroundColor: '#FFC107', color: '#000' }}
+                  >
+                    Create Account
                   </Button>
-                </DialogActions>
-              </Dialog>
-            </motion.div>
-          </Paper>
-        </Box>
-        {/* BRANDING ON LOGIN PAGE */}
-        <Box
+                ) : (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={handleLogin}
+                    sx={{ mt: 3, backgroundColor: '#eabd0bff', color: '#131313ff' }}
+                  >
+                    Login to Resumifyy
+                  </Button>
+                )}
+                {!showSignup && (
+                  <Button
+                    size="small"
+                    sx={{ mt: 3, color: '#FFC107', fontSize: 18 }}
+                    onClick={() => setForgotOpen(true)}
+                  >
+                    Forgot Password?
+                  </Button>
+                )}
+                <Box mt={2}>
+                  <Button
+                    size="small"
+                    onClick={() => setShowSignup(!showSignup)}
+                    sx={{ color: '#FFC107', fontSize: 18 }}
+                  >
+                    {showSignup ? 'Back to Login' : "Don't have an account?  Sign Up"}
+                  </Button>
+                </Box>
+
+                {/* Password Reset Dialog */}
+                <Dialog open={forgotOpen} onClose={() => setForgotOpen(false)}>
+                  <DialogTitle>Reset Password</DialogTitle>
+                  <DialogContent>
+                    <TextField
+                      label="Enter your Email"
+                      fullWidth
+                      margin="dense"
+                      value={resetUsername}
+                      onChange={(e) => setResetUsername(e.target.value)}
+                      helperText="We will send a password reset link to this email."
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setForgotOpen(false)}>Cancel</Button>
+                    <Button onClick={handleForgotPassword} variant="contained">
+                      Send Reset Email
+                    </Button>
+                  </DialogActions>
+                </Dialog>
+              </motion.div>
+            </Paper>
+          </Box>
+          {/* BRANDING ON LOGIN PAGE */}
+          <Box
             sx={{
               position: 'absolute',
               bottom: 16,
@@ -1561,15 +1562,15 @@ if (!user)
               />
             </Box>
           </Box>
-      </Box>
-    </ThemeProvider>
-  );
+        </Box>
+      </ThemeProvider>
+    );
   // ---------- MAIN APP UI (Dynamic Layout) ----------
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box className={`app-layout-box ${themeMode}-mode`}>
-        
+
         <AppBar
           position="fixed"
           className="app-bar"
@@ -1622,7 +1623,7 @@ if (!user)
             {/* --- FIX: Use mobileDrawerContent --- */}
             {mobileDrawerContent}
           </Drawer>
-          
+
           {/* Desktop Drawer (Permanent/Collapsible) */}
           <Drawer
             variant="permanent"
@@ -1665,7 +1666,7 @@ if (!user)
           }}
         >
           <Toolbar />
-          
+
           {tabIndex === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -1748,52 +1749,52 @@ if (!user)
                 <Typography variant="h5" fontWeight="bold" display="flex" alignItems="center" gap={1}>
                   <HistoryIcon /> Past Analyses (Cloud)
                 </Typography>
-                
+
                 {/* --- Search Field --- */}
                 <TextField
-                    size="small"
-                    label="Search (Filename/JD)"
-                    variant="outlined"
-                    value={historySearch}
-                    onChange={(e) => setHistorySearch(e.target.value)}
-                    sx={{ width: { xs: '100%', sm: 250 } }}
+                  size="small"
+                  label="Search (Filename/JD)"
+                  variant="outlined"
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  sx={{ width: { xs: '100%', sm: 250 } }}
                 />
 
                 {/* --- Sort By Select --- */}
                 <Box sx={{ minWidth: 120 }}>
-                    <Select
-                        size="small"
-                        value={historySortBy}
-                        onChange={(e) => setHistorySortBy(e.target.value)}
-                        displayEmpty
-                        fullWidth
-                    >
-                        <MenuItem value="timestamp">Sort by Date (Newest)</MenuItem>
-                        <MenuItem value="skill_match">Sort by Score (Highest)</MenuItem>
-                    </Select>
+                  <Select
+                    size="small"
+                    value={historySortBy}
+                    onChange={(e) => setHistorySortBy(e.target.value)}
+                    displayEmpty
+                    fullWidth
+                  >
+                    <MenuItem value="timestamp">Sort by Date (Newest)</MenuItem>
+                    <MenuItem value="skill_match">Sort by Score (Highest)</MenuItem>
+                  </Select>
                 </Box>
-                
+
                 {/* --- Filter By Score --- */}
                 <Box sx={{ minWidth: 120 }}>
-                    <Select
-                        size="small"
-                        value={historyScoreFilter}
-                        onChange={(e) => setHistoryScoreFilter(e.target.value)}
-                        displayEmpty
-                        fullWidth
-                    >
-                        <MenuItem value="all">Filter by Score: All</MenuItem>
-                        <MenuItem value="excellent">Excellent (&gt;= 75%)</MenuItem>
-                        <MenuItem value="moderate">Moderate (50-74%)</MenuItem>
-                        <MenuItem value="needs_improvement">Needs Improvement (&lt; 50%)</MenuItem>
-                    </Select>
+                  <Select
+                    size="small"
+                    value={historyScoreFilter}
+                    onChange={(e) => setHistoryScoreFilter(e.target.value)}
+                    displayEmpty
+                    fullWidth
+                  >
+                    <MenuItem value="all">Filter by Score: All</MenuItem>
+                    <MenuItem value="excellent">Excellent (&gt;= 75%)</MenuItem>
+                    <MenuItem value="moderate">Moderate (50-74%)</MenuItem>
+                    <MenuItem value="needs_improvement">Needs Improvement (&lt; 50%)</MenuItem>
+                  </Select>
                 </Box>
 
               </Box>
               <Grid container spacing={2}>
                 {visibleHistory.length === 0 ? (
                   <Grid item xs={12}>
-                    <Typography color="text.secondary" align="center" sx={{mt: 4}}>
+                    <Typography color="text.secondary" align="center" sx={{ mt: 4 }}>
                       {history.length > 0 ? "No results match your search and filters." : "No history found. Run an analysis to see your results."}
                     </Typography>
                   </Grid>
@@ -1806,62 +1807,62 @@ if (!user)
                           <Paper
                             elevation={2}
                             sx={{
-                                p: 2,
-                                my: 1,
-                                cursor: 'pointer',
-                                // Apply conditional styling for enhanced preview visibility
-                                '&:hover .history-preview-details': {
-                                    opacity: showHistoryPreview ? 1 : 0,
-                                    maxHeight: showHistoryPreview ? '100px' : '0px',
-                                }
+                              p: 2,
+                              my: 1,
+                              cursor: 'pointer',
+                              // Apply conditional styling for enhanced preview visibility
+                              '&:hover .history-preview-details': {
+                                opacity: showHistoryPreview ? 1 : 0,
+                                maxHeight: showHistoryPreview ? '100px' : '0px',
+                              }
                             }}
                             onClick={() => handleHistoryClick(hh)} // Opens modal
                           >
                             <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                                {/* Details Area (Left Side) */}
-                                <Box sx={{ flexGrow: 1, pr: 1 }}>
-                                    <Typography variant="subtitle1" fontWeight="bold" noWrap>
-                                        {hh.resume_filename}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        {hh.timestamp.split(',')[0]}
-                                    </Typography>
-                                    <Typography variant="body1">
-                                        Skill Match: <strong style={{ color: hh.skill_match >= 75 ? '#2e7d32' : hh.skill_match >= 50 ? '#f9a825' : '#d32f2f' }}>{hh.skill_match}%</strong>
-                                    </Typography>
-                                </Box>
-                              
-                                {/* DELETE BUTTON (Right Side) */}
-                                <IconButton
-                                    size="small"
-                                    color="error"
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevents the parent Paper onClick (opening modal)
-                                        handleDeleteHistoryItem(hh.id, hh.resume_filename);
-                                    }}
-                                    sx={{ mt: -1, mr: -1 }} // Adjust position
-                                >
-                                    <DeleteSweepIcon fontSize="small" />
-                                </IconButton>
-                              
+                              {/* Details Area (Left Side) */}
+                              <Box sx={{ flexGrow: 1, pr: 1 }}>
+                                <Typography variant="subtitle1" fontWeight="bold" noWrap>
+                                  {hh.resume_filename}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {hh.timestamp.split(',')[0]}
+                                </Typography>
+                                <Typography variant="body1">
+                                  Skill Match: <strong style={{ color: hh.skill_match >= 75 ? '#2e7d32' : hh.skill_match >= 50 ? '#f9a825' : '#d32f2f' }}>{hh.skill_match}%</strong>
+                                </Typography>
+                              </Box>
+
+                              {/* DELETE BUTTON (Right Side) */}
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevents the parent Paper onClick (opening modal)
+                                  handleDeleteHistoryItem(hh.id, hh.resume_filename);
+                                }}
+                                sx={{ mt: -1, mr: -1 }} // Adjust position
+                              >
+                                <DeleteSweepIcon fontSize="small" />
+                              </IconButton>
+
                             </Box>
-                            
+
                             {/* Detailed preview box (Bottom) */}
                             <Box
-                                className="history-preview-details"
-                                sx={{
-                                    opacity: 0,
-                                    maxHeight: '0px',
-                                    overflow: 'hidden',
-                                    transition: 'opacity 0.3s, max-height 0.3s',
-                                    mt: 1,
-                                    borderLeft: '2px solid #FFC107',
-                                    pl: 1
-                                }}
+                              className="history-preview-details"
+                              sx={{
+                                opacity: 0,
+                                maxHeight: '0px',
+                                overflow: 'hidden',
+                                transition: 'opacity 0.3s, max-height 0.3s',
+                                mt: 1,
+                                borderLeft: '2px solid #FFC107',
+                                pl: 1
+                              }}
                             >
-                                <Typography variant="caption" display="block" color="text.secondary" noWrap>
-                                    JD: {hh.job_description.substring(0, 100)}...
-                                </Typography>
+                              <Typography variant="caption" display="block" color="text.secondary" noWrap>
+                                JD: {hh.job_description.substring(0, 100)}...
+                              </Typography>
                             </Box>
                           </Paper>
                         </motion.div>
@@ -1875,579 +1876,579 @@ if (!user)
 
           {tabIndex === 3 && (
             <Box sx={{ maxWidth: 700, mx: 'auto' }}>
-              
+
               {/* --- 1. DISPLAY SETTINGS --- */}
               <Paper sx={{ p: 4, mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>Display Settings</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Configure the application's local display and theme.
+                  Configure the application's local display and theme.
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
 
                 {/* Theme Mode Selection (NEW CONTROL) */}
                 <Box sx={{ mb: 3 }}>
-                    <FormControlLabel
-                        control={
-                            <Select
-                                size="small"
-                                value={themeMode}
-                                onChange={handleThemeModeChange} // FIX: Used correct handler
-                                sx={{ minWidth: 150 }}
-                            >
-                                <MenuItem value="light">☀️ Light (Bright)</MenuItem>
-                                <MenuItem value="dark">🌑 Dark (Default)</MenuItem>
-                                <MenuItem value="sepia">📚 Sepia (Soft Eye)</MenuItem>
-                            </Select>
-                        }
-                        label={<Typography variant="body1" fontWeight="medium">Select Theme Mode:</Typography>}
-                        labelPlacement="start"
-                        sx={{ justifyContent: 'space-between', width: '100%', m: 0, '& .MuiFormControlLabel-label': { ml: 0 } }}
-                    />
-                    <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                        Choose the visual theme for your application. Sepia mode offers warmer colors for better eye comfort.
-                    </Typography>
+                  <FormControlLabel
+                    control={
+                      <Select
+                        size="small"
+                        value={themeMode}
+                        onChange={handleThemeModeChange} // FIX: Used correct handler
+                        sx={{ minWidth: 150 }}
+                      >
+                        <MenuItem value="light">☀️ Light (Bright)</MenuItem>
+                        <MenuItem value="dark">🌑 Dark (Default)</MenuItem>
+                        <MenuItem value="sepia">📚 Sepia (Soft Eye)</MenuItem>
+                      </Select>
+                    }
+                    label={<Typography variant="body1" fontWeight="medium">Select Theme Mode:</Typography>}
+                    labelPlacement="start"
+                    sx={{ justifyContent: 'space-between', width: '100%', m: 0, '& .MuiFormControlLabel-label': { ml: 0 } }}
+                  />
+                  <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                    Choose the visual theme for your application. Sepia mode offers warmer colors for better eye comfort.
+                  </Typography>
                 </Box>
 
                 <Divider sx={{ my: 2 }} />
 
                 {/* Dashboard Default Tab (NEW SETTING) */}
                 <Box sx={{ mb: 3 }}>
-                    <FormControlLabel
-                        control={
-                            <Select
-                                size="small"
-                                value={defaultTab}
-                                onChange={handleDefaultTabChange}
-                                sx={{ minWidth: 150 }}
-                            >
-                                <MenuItem value="0">Dashboard</MenuItem>
-                                <MenuItem value="1">Analyze Resume</MenuItem>
-                            </Select>
-                        }
-                        label={<Box display="flex" alignItems="center"><TabIcon sx={{mr: 1}} /> <Typography variant="body1" fontWeight="medium">Default Starting Tab:</Typography></Box>}
-                        labelPlacement="start"
-                        sx={{ justifyContent: 'space-between', width: '100%', m: 0, '& .MuiFormControlLabel-label': { ml: 0 } }}
-                    />
-                    <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                        The tab that opens automatically when you log in.
-                    </Typography>
+                  <FormControlLabel
+                    control={
+                      <Select
+                        size="small"
+                        value={defaultTab}
+                        onChange={handleDefaultTabChange}
+                        sx={{ minWidth: 150 }}
+                      >
+                        <MenuItem value="0">Dashboard</MenuItem>
+                        <MenuItem value="1">Analyze Resume</MenuItem>
+                      </Select>
+                    }
+                    label={<Box display="flex" alignItems="center"><TabIcon sx={{ mr: 1 }} /> <Typography variant="body1" fontWeight="medium">Default Starting Tab:</Typography></Box>}
+                    labelPlacement="start"
+                    sx={{ justifyContent: 'space-between', width: '100%', m: 0, '& .MuiFormControlLabel-label': { ml: 0 } }}
+                  />
+                  <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                    The tab that opens automatically when you log in.
+                  </Typography>
                 </Box>
-                
+
                 {/* History Preview Toggle (NEW SETTING) */}
                 <Box sx={{ mb: 3 }}>
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={showHistoryPreview}
-                                onChange={handleShowHistoryPreviewChange}
-                                color="primary"
-                            />
-                        }
-                        label={<Box display="flex" alignItems="center"><VisibilityIcon sx={{mr: 1}} /> <Typography variant="body1" fontWeight="medium">Show History Hover Preview</Typography></Box>}
-                        labelPlacement="start"
-                        sx={{ justifyContent: 'space-between', width: '100%', m: 0, '& .MuiFormControlLabel-label': { ml: 0 } }}
-                    />
-                    <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                        Show a brief snippet of the Job Description when hovering over an item in the History tab.
-                    </Typography>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={showHistoryPreview}
+                        onChange={handleShowHistoryPreviewChange}
+                        color="primary"
+                      />
+                    }
+                    label={<Box display="flex" alignItems="center"><VisibilityIcon sx={{ mr: 1 }} /> <Typography variant="body1" fontWeight="medium">Show History Hover Preview</Typography></Box>}
+                    labelPlacement="start"
+                    sx={{ justifyContent: 'space-between', width: '100%', m: 0, '& .MuiFormControlLabel-label': { ml: 0 } }}
+                  />
+                  <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                    Show a brief snippet of the Job Description when hovering over an item in the History tab.
+                  </Typography>
                 </Box>
               </Paper>
-              
+
               {/* --- 2. USER ACCOUNT AND DATA SETTINGS --- */}
               <Paper sx={{ p: 4, mb: 3 }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>User Account and Cloud Data</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Manage your credentials and cloud history.
+                  Manage your credentials and cloud history.
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
-                
+
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    
-                    {/* Change Display Name Button */}
-                    <Button
-                        variant="outlined"
-                        startIcon={<BadgeIcon />}
-                        onClick={() => { setNewDisplayName(displayName); setChangeDisplayNameOpen(true); }}
-                        fullWidth
-                        sx={{ justifyContent: 'flex-start' }}
-                        disabled={!user}
-                    >
-                        Change Display Name ({displayName})
-                    </Button>
-                    
-                    {/* Change Password Button */}
-                    <Button
-                        variant="outlined"
-                        startIcon={<LockOpenIcon />}
-                        onClick={() => { setResetUsername(user?.email); setForgotOpen(true); }}
-                        fullWidth
-                        sx={{ justifyContent: 'flex-start' }}
-                        disabled={!user}
-                    >
-                        Change Password (via Email Reset)
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        startIcon={<DeleteSweepIcon />}
-                        onClick={handleClearCloudHistory}
-                        fullWidth
-                        color="error"
-                        sx={{
-                            justifyContent: 'flex-start',
-                            // FIX: Use themeMode to check if we are in light/sepia base for disabling colors
-                            color: history.length === 0 && themeMode !== 'dark' ? theme.palette.text.secondary : undefined,
-                            borderColor: history.length === 0 && themeMode !== 'dark' ? theme.palette.action.disabledBackground : undefined,
-                            '&.Mui-disabled': {
-                                // This ensures the text and border are visible gray when disabled
-                                color: history.length === 0 ? `${theme.palette.text.secondary} !important` : undefined,
-                                borderColor: history.length === 0 ? `${theme.palette.action.disabledBackground} !important` : undefined,
-                            },
-                        }}
-                        disabled={!user || history.length === 0}
-                    >
-                        Clear All Cloud History ({history.length} items)
-                    </Button>
+
+                  {/* Change Display Name Button */}
+                  <Button
+                    variant="outlined"
+                    startIcon={<BadgeIcon />}
+                    onClick={() => { setNewDisplayName(displayName); setChangeDisplayNameOpen(true); }}
+                    fullWidth
+                    sx={{ justifyContent: 'flex-start' }}
+                    disabled={!user}
+                  >
+                    Change Display Name ({displayName})
+                  </Button>
+
+                  {/* Change Password Button */}
+                  <Button
+                    variant="outlined"
+                    startIcon={<LockOpenIcon />}
+                    onClick={() => { setResetUsername(user?.email); setForgotOpen(true); }}
+                    fullWidth
+                    sx={{ justifyContent: 'flex-start' }}
+                    disabled={!user}
+                  >
+                    Change Password (via Email Reset)
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<DeleteSweepIcon />}
+                    onClick={handleClearCloudHistory}
+                    fullWidth
+                    color="error"
+                    sx={{
+                      justifyContent: 'flex-start',
+                      // FIX: Use themeMode to check if we are in light/sepia base for disabling colors
+                      color: history.length === 0 && themeMode !== 'dark' ? theme.palette.text.secondary : undefined,
+                      borderColor: history.length === 0 && themeMode !== 'dark' ? theme.palette.action.disabledBackground : undefined,
+                      '&.Mui-disabled': {
+                        // This ensures the text and border are visible gray when disabled
+                        color: history.length === 0 ? `${theme.palette.text.secondary} !important` : undefined,
+                        borderColor: history.length === 0 ? `${theme.palette.action.disabledBackground} !important` : undefined,
+                      },
+                    }}
+                    disabled={!user || history.length === 0}
+                  >
+                    Clear All Cloud History ({history.length} items)
+                  </Button>
                 </Box>
               </Paper>
-              
+
               {/* --- 3. LOCAL DATA RESET --- */}
               <Paper sx={{ p: 4 }}>
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>Local Cache Reset</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Use this to clear local preferences, force logout, or fix display issues.
+                  Use this to clear local preferences, force logout, or fix display issues.
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
-                
+
                 <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={handleResetLocalData}
-                    fullWidth
+                  variant="outlined"
+                  color="error"
+                  onClick={handleResetLocalData}
+                  fullWidth
                 >
-                    Reset Local Display Settings & Logout
+                  Reset Local Display Settings & Logout
                 </Button>
                 <Typography variant="caption" color="text.secondary" display="block" mt={0.5}>
-                    This clears theme, default tab, and preview preferences. Cloud history remains untouched.
+                  This clears theme, default tab, and preview preferences. Cloud history remains untouched.
                 </Typography>
               </Paper>
             </Box>
           )}
 
           {tabIndex === 4 && (
-  <Box
-    component={motion.div}
-    initial={{ opacity: 0, scale: 0.98 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ duration: 0.3 }}
-    sx={{
-      maxWidth: { xs: '100%', md: 1000 },
-      mx: 'auto',
-      minHeight: '85vh',
-      display: 'flex',
-      flexDirection: 'column',
-      py: { xs: 2, md: 5 }
-    }}
-  >
-    {/* HEADER SECTION */}
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1, duration: 0.5 }}
-    >
-      <Box sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography
-          variant="h3"
-          fontWeight="bold"
-          gutterBottom
-          sx={{
-            color: theme.palette.primary.main,
-            mb: 1,
-            background: 'linear-gradient(135deg, #FFC107 0%, #FFB300 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            fontSize: { xs: '2rem', md: '3rem' }
-          }}
-        >
-          Your Opinion Matters!
-        </Typography>
-        <Typography
-          variant="h6"
-          fontWeight="300"
-          sx={{
-            color: themeMode === 'dark' ? '#B0BEC5' : (themeMode === 'sepia' ? "#79664D" : "#666"),
-            fontSize: { xs: '1rem', md: '1.3rem' },
-            fontStyle: 'italic',
-            mt: 2,
-            maxWidth: 700,
-            mx: 'auto'
-          }}
-        >
-          If something breaks, pretend it's a feature—and then tell us here.😜
-        </Typography>
-      </Box>
-    </motion.div>
-
-    <Divider sx={{ mb: 6 }} />
-
-    {/* SECTION 1: FEEDBACK TYPE */}
-    <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.2, duration: 0.5 }}
-    >
-      <Paper
-        sx={{
-          p: { xs: 3, md: 4 },
-          mb: 4,
-          background: themeMode === 'dark' ? 'rgba(255, 193, 7, 0.08)' : 'rgba(255, 193, 7, 0.05)',
-          border: `2px solid ${theme.palette.primary.main}`,
-          borderRadius: 2,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: `0 8px 24px ${themeMode === 'dark' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(255, 193, 7, 0.1)'}`
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Box
-            sx={{
-              width: 50,
-              height: 50,
-              borderRadius: '50%',
-              bgcolor: theme.palette.primary.main,
-              color: '#000',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '1.5rem',
-              flexShrink: 0
-            }}
-          >
-            1️⃣
-          </Box>
-          <Box>
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              sx={{ color: 'text.primary', fontSize: '1.3rem' }}
-            >
-              What's Your Vibe?
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Pick the type of feedback you're bringing to the table
-            </Typography>
-          </Box>
-        </Box>
-        
-        <Box sx={{ pl: { xs: 0, md: 9 } }}>
-          <Select
-            value={feedbackType}
-            onChange={(e) => setFeedbackType(e.target.value)}
-            fullWidth
-            size="large"
-            sx={{
-              fontSize: '1.1rem',
-              fontWeight: '600',
-              bgcolor: themeMode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-              '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: theme.palette.primary.main,
-                borderWidth: '2px'
-              },
-              '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#FFB300'
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#FFB300',
-                borderWidth: '2px'
-              }
-            }}
-          >
-            <MenuItem value="Suggestion" sx={{ fontSize: '1rem', py: 1.5 }}>
-              🚀 Feature Suggestion – I Have a Brilliant Idea
-            </MenuItem>
-            <MenuItem value="Bug" sx={{ fontSize: '1rem', py: 1.5 }}>
-              🐛 Bug Report – Something Broke (Oops!)
-            </MenuItem>
-            <MenuItem value="Rating" sx={{ fontSize: '1rem', py: 1.5 }}>
-              ⭐ General Comment – Just Saying Hello
-            </MenuItem>
-          </Select>
-        </Box>
-      </Paper>
-    </motion.div>
-
-    {/* SECTION 2: RATING */}
-    <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.35, duration: 0.5 }}
-    >
-      <Paper
-        sx={{
-          p: { xs: 3, md: 4 },
-          mb: 4,
-          background: themeMode === 'dark' ? 'rgba(46, 125, 50, 0.08)' : 'rgba(46, 125, 50, 0.05)',
-          border: `2px solid #2e7d32`,
-          borderRadius: 2,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: `0 8px 24px ${themeMode === 'dark' ? 'rgba(46, 125, 50, 0.2)' : 'rgba(46, 125, 50, 0.1)'}`
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Box
-            sx={{
-              width: 50,
-              height: 50,
-              borderRadius: '50%',
-              bgcolor: '#2e7d32',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '1.5rem',
-              flexShrink: 0
-            }}
-          >
-            2️⃣
-          </Box>
-          <Box>
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              sx={{ color: 'text.primary', fontSize: '1.3rem' }}
-            >
-              How Are We Doing?
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Rate your experience with Resumifyy (1-5 stars)
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ pl: { xs: 0, md: 9 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Rating
-              name="overall-rating"
-              value={feedbackRating}
-              onChange={(event, newValue) => setFeedbackRating(newValue)}
-              precision={1}
-              size="large"
-              sx={{
-                '& .MuiRating-iconFilled': { color: theme.palette.primary.main },
-                '& .MuiRating-iconEmpty': { color: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
-                transition: 'transform 0.2s ease',
-                '& .MuiIconButton-root': {
-                  transition: 'transform 0.2s ease',
-                  '&:hover': { transform: 'scale(1.15)' }
-                }
-              }}
-            />
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              sx={{
-                color: theme.palette.primary.main,
-                minWidth: 60,
-                fontSize: '1.3rem'
-              }}
-            >
-              {feedbackRating}/5
-            </Typography>
-          </Box>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
-            ✓ Your rating is anonymous – be brutally honest!
-          </Typography>
-        </Box>
-      </Paper>
-    </motion.div>
-
-    {/* SECTION 3: DETAILED FEEDBACK */}
-    <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.5, duration: 0.5 }}
-      style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
-    >
-      <Paper
-        sx={{
-          p: { xs: 3, md: 4 },
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          background: themeMode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(25, 118, 210, 0.05)',
-          border: `2px solid #1976D2`,
-          borderRadius: 2,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: `0 8px 24px ${themeMode === 'dark' ? 'rgba(25, 118, 210, 0.2)' : 'rgba(25, 118, 210, 0.1)'}`
-          }
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Box
-            sx={{
-              width: 50,
-              height: 50,
-              borderRadius: '50%',
-              bgcolor: '#1976D2',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              fontSize: '1.5rem',
-              flexShrink: 0
-            }}
-          >
-            3️⃣
-          </Box>
-          <Box>
-            <Typography
-              variant="h6"
-              fontWeight="bold"
-              sx={{ color: 'text.primary', fontSize: '1.3rem' }}
-            >
-              Spill the Tea ☕
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Drop your detailed feedback here (be specific!)
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', pl: { xs: 0, md: 9 } }}>
-  <TextField
-    multiline
-    rows={10}
-    value={feedbackText}
-    onChange={(e) => setFeedbackText(e.target.value)}
-    fullWidth
-    placeholder={`Tell us about the ${feedbackType.toLowerCase()}...\n\nExample: "The Dashboard is awesome, but the History search keeps eating my filters when I breathe too hard."`}
-    sx={{
-      flex: 1,
-      '& .MuiOutlinedInput-root': {
-        bgcolor:
-          themeMode === 'dark'
-            ? '#2a2a2a'
-            : themeMode === 'sepia'
-            ? '#FFF5E0'
-            : '#f5f5f5',
-        '& fieldset': { borderWidth: '2px', borderColor: 'transparent' },
-        '&:hover fieldset': { borderColor: '#1565C0' },
-        '&.Mui-focused fieldset': { borderColor: '#1565C0', borderWidth: '2px' },
-      },
-      '& .MuiOutlinedInput-input': {
-        fontSize: '1.05rem',
-        lineHeight: '1.6',
-        color:
-          themeMode === 'dark'
-            ? '#F0F4F8'
-            : themeMode === 'sepia'
-            ? '#4B371C'
-            : '#000000',
-        '&::placeholder': {
-          color:
-            themeMode === 'dark'
-              ? '#9E9E9E'
-              : themeMode === 'sepia'
-              ? '#79664D'
-              : '#666666',
-          opacity: 1,
-        },
-      },
-    }}
-  />
-          {/* Word Count Indicator */}
-          <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">
-              {feedbackText.length} characters • Minimum 10 required
-            </Typography>
             <Box
+              component={motion.div}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
               sx={{
-                width: 120,
-                height: 6,
-                bgcolor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                borderRadius: 3,
-                overflow: 'hidden'
+                maxWidth: { xs: '100%', md: 1000 },
+                mx: 'auto',
+                minHeight: '85vh',
+                display: 'flex',
+                flexDirection: 'column',
+                py: { xs: 2, md: 5 }
               }}
             >
+              {/* HEADER SECTION */}
               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min((feedbackText.length / 100) * 100, 100)}%` }}
-                transition={{ type: 'spring', stiffness: 80 }}
-                style={{
-                  height: '100%',
-                  background: 'linear-gradient(90deg, #FFC107, #FFB300)',
-                  borderRadius: 3
-                }}
-              />
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.5 }}
+              >
+                <Box sx={{ mb: 6, textAlign: 'center' }}>
+                  <Typography
+                    variant="h3"
+                    fontWeight="bold"
+                    gutterBottom
+                    sx={{
+                      color: theme.palette.primary.main,
+                      mb: 1,
+                      background: 'linear-gradient(135deg, #FFC107 0%, #FFB300 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontSize: { xs: '2rem', md: '3rem' }
+                    }}
+                  >
+                    Your Opinion Matters!
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    fontWeight="300"
+                    sx={{
+                      color: themeMode === 'dark' ? '#B0BEC5' : (themeMode === 'sepia' ? "#79664D" : "#666"),
+                      fontSize: { xs: '1rem', md: '1.3rem' },
+                      fontStyle: 'italic',
+                      mt: 2,
+                      maxWidth: 700,
+                      mx: 'auto'
+                    }}
+                  >
+                    If something breaks, pretend it's a feature—and then tell us here.😜
+                  </Typography>
+                </Box>
+              </motion.div>
+
+              <Divider sx={{ mb: 6 }} />
+
+              {/* SECTION 1: FEEDBACK TYPE */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <Paper
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    mb: 4,
+                    background: themeMode === 'dark' ? 'rgba(255, 193, 7, 0.08)' : 'rgba(255, 193, 7, 0.05)',
+                    border: `2px solid ${theme.palette.primary.main}`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: `0 8px 24px ${themeMode === 'dark' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(255, 193, 7, 0.1)'}`
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                    <Box
+                      sx={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: '50%',
+                        bgcolor: theme.palette.primary.main,
+                        color: '#000',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '1.5rem',
+                        flexShrink: 0
+                      }}
+                    >
+                      1️⃣
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{ color: 'text.primary', fontSize: '1.3rem' }}
+                      >
+                        What's Your Vibe?
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Pick the type of feedback you're bringing to the table
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ pl: { xs: 0, md: 9 } }}>
+                    <Select
+                      value={feedbackType}
+                      onChange={(e) => setFeedbackType(e.target.value)}
+                      fullWidth
+                      size="large"
+                      sx={{
+                        fontSize: '1.1rem',
+                        fontWeight: '600',
+                        bgcolor: themeMode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          borderWidth: '2px'
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#FFB300'
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#FFB300',
+                          borderWidth: '2px'
+                        }
+                      }}
+                    >
+                      <MenuItem value="Suggestion" sx={{ fontSize: '1rem', py: 1.5 }}>
+                        🚀 Feature Suggestion – I Have a Brilliant Idea
+                      </MenuItem>
+                      <MenuItem value="Bug" sx={{ fontSize: '1rem', py: 1.5 }}>
+                        🐛 Bug Report – Something Broke (Oops!)
+                      </MenuItem>
+                      <MenuItem value="Rating" sx={{ fontSize: '1rem', py: 1.5 }}>
+                        ⭐ General Comment – Just Saying Hello
+                      </MenuItem>
+                    </Select>
+                  </Box>
+                </Paper>
+              </motion.div>
+
+              {/* SECTION 2: RATING */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35, duration: 0.5 }}
+              >
+                <Paper
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    mb: 4,
+                    background: themeMode === 'dark' ? 'rgba(46, 125, 50, 0.08)' : 'rgba(46, 125, 50, 0.05)',
+                    border: `2px solid #2e7d32`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: `0 8px 24px ${themeMode === 'dark' ? 'rgba(46, 125, 50, 0.2)' : 'rgba(46, 125, 50, 0.1)'}`
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                    <Box
+                      sx={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: '50%',
+                        bgcolor: '#2e7d32',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '1.5rem',
+                        flexShrink: 0
+                      }}
+                    >
+                      2️⃣
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{ color: 'text.primary', fontSize: '1.3rem' }}
+                      >
+                        How Are We Doing?
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Rate your experience with Resumifyy (1-5 stars)
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ pl: { xs: 0, md: 9 } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                      <Rating
+                        name="overall-rating"
+                        value={feedbackRating}
+                        onChange={(event, newValue) => setFeedbackRating(newValue)}
+                        precision={1}
+                        size="large"
+                        sx={{
+                          '& .MuiRating-iconFilled': { color: theme.palette.primary.main },
+                          '& .MuiRating-iconEmpty': { color: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)' },
+                          transition: 'transform 0.2s ease',
+                          '& .MuiIconButton-root': {
+                            transition: 'transform 0.2s ease',
+                            '&:hover': { transform: 'scale(1.15)' }
+                          }
+                        }}
+                      />
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{
+                          color: theme.palette.primary.main,
+                          minWidth: 60,
+                          fontSize: '1.3rem'
+                        }}
+                      >
+                        {feedbackRating}/5
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
+                      ✓ Your rating is anonymous – be brutally honest!
+                    </Typography>
+                  </Box>
+                </Paper>
+              </motion.div>
+
+              {/* SECTION 3: DETAILED FEEDBACK */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+              >
+                <Paper
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    background: themeMode === 'dark' ? 'rgba(25, 118, 210, 0.08)' : 'rgba(25, 118, 210, 0.05)',
+                    border: `2px solid #1976D2`,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      boxShadow: `0 8px 24px ${themeMode === 'dark' ? 'rgba(25, 118, 210, 0.2)' : 'rgba(25, 118, 210, 0.1)'}`
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                    <Box
+                      sx={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: '50%',
+                        bgcolor: '#1976D2',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '1.5rem',
+                        flexShrink: 0
+                      }}
+                    >
+                      3️⃣
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{ color: 'text.primary', fontSize: '1.3rem' }}
+                      >
+                        Spill the Tea ☕
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Drop your detailed feedback here (be specific!)
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', pl: { xs: 0, md: 9 } }}>
+                    <TextField
+                      multiline
+                      rows={10}
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      fullWidth
+                      placeholder={`Tell us about the ${feedbackType.toLowerCase()}...\n\nExample: "The Dashboard is awesome, but the History search keeps eating my filters when I breathe too hard."`}
+                      sx={{
+                        flex: 1,
+                        '& .MuiOutlinedInput-root': {
+                          bgcolor:
+                            themeMode === 'dark'
+                              ? '#2a2a2a'
+                              : themeMode === 'sepia'
+                                ? '#FFF5E0'
+                                : '#f5f5f5',
+                          '& fieldset': { borderWidth: '2px', borderColor: 'transparent' },
+                          '&:hover fieldset': { borderColor: '#1565C0' },
+                          '&.Mui-focused fieldset': { borderColor: '#1565C0', borderWidth: '2px' },
+                        },
+                        '& .MuiOutlinedInput-input': {
+                          fontSize: '1.05rem',
+                          lineHeight: '1.6',
+                          color:
+                            themeMode === 'dark'
+                              ? '#F0F4F8'
+                              : themeMode === 'sepia'
+                                ? '#4B371C'
+                                : '#000000',
+                          '&::placeholder': {
+                            color:
+                              themeMode === 'dark'
+                                ? '#9E9E9E'
+                                : themeMode === 'sepia'
+                                  ? '#79664D'
+                                  : '#666666',
+                            opacity: 1,
+                          },
+                        },
+                      }}
+                    />
+                    {/* Word Count Indicator */}
+                    <Box sx={{ mt: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        {feedbackText.length} characters • Minimum 10 required
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 120,
+                          height: 6,
+                          bgcolor: themeMode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                          borderRadius: 3,
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min((feedbackText.length / 100) * 100, 100)}%` }}
+                          transition={{ type: 'spring', stiffness: 80 }}
+                          style={{
+                            height: '100%',
+                            background: 'linear-gradient(90deg, #FFC107, #FFB300)',
+                            borderRadius: 3
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  </Box>
+                </Paper>
+
+                {/* SUBMIT BUTTON - BELOW FEEDBACK BOX */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.65, duration: 0.5 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  style={{ marginTop: '2rem' }}
+                >
+                  <Button
+                    variant="contained"
+                    onClick={handleFeedbackSubmit}
+                    fullWidth
+                    size="large"
+                    disabled={!user || feedbackText.trim().length < 10}
+                    sx={{
+                      py: 2.5,
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      background: 'linear-gradient(135deg, #FFC107 0%, #FFB300 100%)',
+                      color: '#000',
+                      borderRadius: 1.5,
+                      textTransform: 'uppercase',
+                      letterSpacing: 1,
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 6px 20px rgba(255, 193, 7, 0.4)',
+                      '&:hover:not(:disabled)': {
+                        boxShadow: '0 12px 30px rgba(255, 193, 7, 0.6)',
+                        transform: 'translateY(-2px)'
+                      },
+                      '&:disabled': {
+                        opacity: 0.6,
+                        cursor: 'not-allowed'
+                      }
+                    }}
+                  >
+                    ✨ Submit Feedback ✨
+                  </Button>
+                </motion.div>
+
+                {/* USER INFO & REQUIREMENTS */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.75, duration: 0.5 }}
+                >
+                  <Box sx={{ mt: 3, p: 2.5, bgcolor: 'action.hover', borderRadius: 1.5, textAlign: 'center' }}>
+                    <Typography variant="body2" fontWeight="600" sx={{ mb: 1 }}>
+                      {user ? `🔐 Submitting as: ${displayName} (${user.email})` : "🔒 Please log in to submit feedback"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      ✓ We read every single one
+                    </Typography>
+                  </Box>
+                </motion.div>
+              </motion.div>
             </Box>
-          </Box>
-        </Box>
-      </Paper>
-
-      {/* SUBMIT BUTTON - BELOW FEEDBACK BOX */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.65, duration: 0.5 }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        style={{ marginTop: '2rem' }}
-      >
-        <Button
-          variant="contained"
-          onClick={handleFeedbackSubmit}
-          fullWidth
-          size="large"
-          disabled={!user || feedbackText.trim().length < 10}
-          sx={{
-            py: 2.5,
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            background: 'linear-gradient(135deg, #FFC107 0%, #FFB300 100%)',
-            color: '#000',
-            borderRadius: 1.5,
-            textTransform: 'uppercase',
-            letterSpacing: 1,
-            transition: 'all 0.3s ease',
-            boxShadow: '0 6px 20px rgba(255, 193, 7, 0.4)',
-            '&:hover:not(:disabled)': {
-              boxShadow: '0 12px 30px rgba(255, 193, 7, 0.6)',
-              transform: 'translateY(-2px)'
-            },
-            '&:disabled': {
-              opacity: 0.6,
-              cursor: 'not-allowed'
-            }
-          }}
-        >
-          ✨ Submit Feedback ✨
-        </Button>
-      </motion.div>
-
-      {/* USER INFO & REQUIREMENTS */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.75, duration: 0.5 }}
-      >
-        <Box sx={{ mt: 3, p: 2.5, bgcolor: 'action.hover', borderRadius: 1.5, textAlign: 'center' }}>
-          <Typography variant="body2" fontWeight="600" sx={{ mb: 1 }}>
-            {user ? `🔐 Submitting as: ${displayName} (${user.email})` : "🔒 Please log in to submit feedback"}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" display="block">
-            ✓ We read every single one
-          </Typography>
-        </Box>
-      </motion.div>
-    </motion.div>
-  </Box>
-)}
+          )}
 
 
           {/* --- HISTORY DETAIL MODAL (Unchanged) --- */}
@@ -2458,7 +2459,7 @@ if (!user)
             <DialogContent dividers>
               {selectedHistory ? (
                 <Box>
-                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     Analyzed on: {selectedHistory.timestamp}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
@@ -2480,7 +2481,7 @@ if (!user)
               <Button onClick={handleHistoryModalClose} color="primary" autoFocus>Close</Button>
             </DialogActions>
           </Dialog>
-          
+
           {/* --- CHANGE DISPLAY NAME DIALOG (NEW) --- */}
           <Dialog open={changeDisplayNameOpen} onClose={() => setChangeDisplayNameOpen(false)}>
             <DialogTitle>Change Display Name</DialogTitle>
@@ -2538,30 +2539,30 @@ if (!user)
           {/* --- NEW: GUIDED ONBOARDING DIALOG --- */}
           <Dialog open={showOnboarding} fullWidth maxWidth="sm" disableEscapeKeyDown>
             <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Avatar sx={{ bgcolor: '#FFC107' }}>👋</Avatar>
-                <Typography variant="h6" fontWeight="bold">Welcome to Resumifyy, {displayName}!</Typography>
+              <Avatar sx={{ bgcolor: '#FFC107' }}>👋</Avatar>
+              <Typography variant="h6" fontWeight="bold">Welcome to Resumifyy, {displayName}!</Typography>
             </DialogTitle>
             <DialogContent dividers>
               <Typography variant="body1" sx={{ mb: 2 }}>
                 We're excited to help you match your resume to your dream job. Here’s a quick guide:
               </Typography>
-              
+
               <Box sx={{ mb: 2, p: 2, borderLeft: '3px solid #FFC107', bgcolor: 'action.hover', borderRadius: 1 }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><TroubleshootIcon fontSize="small"/> Step 1: Analyze</Typography>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><TroubleshootIcon fontSize="small" /> Step 1: Analyze</Typography>
                 <Typography variant="body2" color="text.secondary">
                   Go to the **Analyze** tab (index 1), upload your resume (PDF/DOCX), and paste the job description you want to match. Hit 'Analyze'!
                 </Typography>
               </Box>
 
               <Box sx={{ mb: 2, p: 2, borderLeft: '3px solid #2e7d32', bgcolor: 'action.hover', borderRadius: 1 }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DashboardIcon fontSize="small"/> Step 2: Review & Improve</Typography>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DashboardIcon fontSize="small" /> Step 2: Review & Improve</Typography>
                 <Typography variant="body2" color="text.secondary">
                   Check your **Skill Match %** and review the AI-suggested improvements. Use the **"AI-Optimize"** button to instantly rewrite parts of your resume!
                 </Typography>
               </Box>
 
               <Box sx={{ p: 2, borderLeft: '3px solid #1976D2', bgcolor: 'action.hover', borderRadius: 1 }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HistoryIcon fontSize="small"/> Step 3: Track</Typography>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HistoryIcon fontSize="small" /> Step 3: Track</Typography>
                 <Typography variant="body2" color="text.secondary">
                   Your results are automatically saved in the **History** tab (index 2) so you can track your progress over time.
                 </Typography>
@@ -2606,7 +2607,7 @@ if (!user)
               </Button>
             </DialogActions>
           </Dialog>
-          
+
         </Box>
       </Box>
     </ThemeProvider>
