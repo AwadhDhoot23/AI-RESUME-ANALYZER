@@ -3,6 +3,10 @@
 backend/.env
 frontend/src/firebaseConfig.js
 
+# Firebase Service Account Keys (NEVER commit these!)
+backend/*adminsdk*.json
+*firebase-adminsdk*.json
+
 # Python
 venv/
 __pycache__/

@@ -29,19 +29,19 @@ const apiUrl = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
 
 // Standard Chart Colors
 const CHART_COLORS = [
-    '#00C4CC', // Teal/Cyan (Main for Pie)
-    '#FF5722', // Deep Orange
-    '#E91E63', // Pink/Magenta
-    '#2196F3', // Blue
-    '#4CAF50',  // Green
-    '#FFC107', // Gold
-    '#9C27B0', // Purple
-    '#795548', // Brown
+  '#00C4CC', // Teal/Cyan (Main for Pie)
+  '#FF5722', // Deep Orange
+  '#E91E63', // Pink/Magenta
+  '#2196F3', // Blue
+  '#4CAF50',  // Green
+  '#FFC107', // Gold
+  '#9C27B0', // Purple
+  '#795548', // Brown
 ];
 
 
 const Dashboard = ({ history, username, darkMode }) => {
-  
+
   // --- NEW STATE: Global Market Trends ---
   const [topSkills, setTopSkills] = useState([]);
   const [loadingTrends, setLoadingTrends] = useState(true);
@@ -64,7 +64,7 @@ const Dashboard = ({ history, username, darkMode }) => {
     };
     fetchTrends();
   }, [darkMode]); // Rerun if the theme changes (for text color consistency)
-  
+
   // --- LOCAL THEME VARIABLES ---
   const chartTextColor = darkMode ? '#F0F4F8' : '#333333';
   const tickColor = darkMode ? '#9E9E9E' : '#666666';
@@ -79,7 +79,7 @@ const Dashboard = ({ history, username, darkMode }) => {
       // Clean up skill string, assuming normalizeAnalysis already handles the basics
       const cleanSkill = String(skill).split('(')[0].trim();
       if (cleanSkill) {
-         topMissingSkills[cleanSkill] = (topMissingSkills[cleanSkill] || 0) + 1;
+        topMissingSkills[cleanSkill] = (topMissingSkills[cleanSkill] || 0) + 1;
       }
     });
     matchScores.push(h.skill_match);
@@ -93,53 +93,53 @@ const Dashboard = ({ history, username, darkMode }) => {
     labels: sortedMissingSkills.map(item => item[0]),
     datasets: [{
       data: sortedMissingSkills.map(item => item[1]),
-      backgroundColor: CHART_COLORS, 
+      backgroundColor: CHART_COLORS,
       borderColor: darkMode ? '#1E1E1E' : '#FFF5E0', // Match paper color
       borderWidth: 1,
     }],
   };
-  
+
   const barData = {
-    labels: history.map(h => h.timestamp.split(' ')[0]).reverse(), 
+    labels: history.map(h => h.timestamp.split(' ')[0]).reverse(),
     datasets: [{
       label: 'Skill Match %',
       data: matchScores.reverse(),
-      backgroundColor: CHART_COLORS[0], 
+      backgroundColor: CHART_COLORS[0],
       borderRadius: 6,
     }],
   };
   // -------------------------------------------------------------------
 
   // --- PIE CHART OPTIONS ---
-  const pieOptions = { 
+  const pieOptions = {
     maintainAspectRatio: false,
     font: { family: 'Poppins' },
     plugins: {
-        legend: { labels: { usePointStyle: true, color: chartTextColor, font: { family: 'Poppins' } } },
-        title: { display: false }
+      legend: { labels: { usePointStyle: true, color: chartTextColor, font: { family: 'Poppins' } } },
+      title: { display: false }
     }
   };
 
   // --- BAR CHART OPTIONS ---
-  const barOptions = { 
-    responsive: true, 
+  const barOptions = {
+    responsive: true,
     maintainAspectRatio: false,
     font: { family: 'Poppins' },
-    scales: { 
-        y: { 
-            grid: { color: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' },
-            ticks: { color: tickColor, font: { family: 'Poppins' }, callback: (value) => `${value}%` },
-            max: 100,
-            min: 0,
-        },
-        x: { 
-            grid: { display: false },
-            ticks: { display: false } 
-        }
+    scales: {
+      y: {
+        grid: { color: darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' },
+        ticks: { color: tickColor, font: { family: 'Poppins' }, callback: (value) => `${value}%` },
+        max: 100,
+        min: 0,
+      },
+      x: {
+        grid: { display: false },
+        ticks: { display: false }
+      }
     },
     plugins: {
-        legend: { labels: { usePointStyle: true, color: chartTextColor, font: { family: 'Poppins' } } },
-        title: { display: false }
+      legend: { labels: { usePointStyle: true, color: chartTextColor, font: { family: 'Poppins' } } },
+      title: { display: false }
     }
   };
 
@@ -160,52 +160,53 @@ const Dashboard = ({ history, username, darkMode }) => {
             const score = getTrendScore(trend.rank);
             const isTop3 = trend.rank <= 3;
             const rankColor = isTop3 ? '#FFC107' : (trend.rank <= 6 ? '#00C4CC' : tickColor);
-            
+
             return (
-              <Grid item xs={12} sm={6} key={trend.rank}> {/* Two columns on small screens and up */}
-                <Box 
-                  sx={{ 
-                    p: 2, 
-                    bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', 
-                    borderRadius: 2, 
-                    borderLeft: `3px solid ${rankColor}`, // Left accent line
-                    display: 'flex', 
-                    alignItems: 'center', 
+              <Grid size={{ xs: 12, sm: 6 }} key={trend.rank}> {/* Two columns on small screens and up */}
+                <Box
+                  sx={{
+                    p: 2,
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                    borderRadius: 2,
+                    borderLeft: `3px solid ${rankColor}`,
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 2,
-                    boxShadow: isTop3 ? '0 0 10px rgba(255, 193, 7, 0.3)' : 'none', // Subtle glow for top 3
+                    overflow: 'hidden',
+                    boxShadow: isTop3 ? '0 0 10px rgba(255, 193, 7, 0.3)' : 'none',
                   }}
                 >
                   {/* Rank Badge */}
-                  <Typography 
-                    variant="h5" 
-                    fontWeight="extra bold" 
-                    sx={{ 
-                      color: rankColor, 
-                      width: '30px', 
+                  <Typography
+                    variant="h5"
+                    fontWeight="extra bold"
+                    sx={{
+                      color: rankColor,
+                      width: '30px',
                       textAlign: 'center',
                     }}
                   >
                     #{trend.rank}
                   </Typography>
-                  
+
                   {/* Skill and Score */}
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography 
-                      variant="body1" 
-                      fontWeight="bold" 
-                      color="text.primary" 
-                      noWrap
+                  <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
+                    <Typography
+                      variant="body1"
+                      fontWeight="bold"
+                      color="text.primary"
+                      sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     >
                       {trend.skill}
                     </Typography>
-                    <Typography 
-                      variant="caption" 
+                    <Typography
+                      variant="caption"
                       sx={{ color: rankColor, fontWeight: 'medium' }}
                     >
                       {Math.round(score)}% Demand Index
                     </Typography>
                   </Box>
-                  
+
                 </Box>
               </Grid>
             );
@@ -226,103 +227,103 @@ const Dashboard = ({ history, username, darkMode }) => {
     return (
       <Grid container spacing={3} justifyContent="center">
         {/* GLOBAL TRENDS CARD (Full Width on Empty State) */}
-        <Grid item xs={12} md={8}> 
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-                <Typography variant="h5" gutterBottom fontWeight="bold">Welcome, {username}!</Typography>
-                <Typography color="text.secondary" sx={{ mb: 4 }}>
-                  Run an analysis in the **Analyze** tab to see your personal stats. Meanwhile, check the global market.
-                </Typography>
-                <Divider sx={{ mb: 4 }} />
-                
-                <Typography variant="h6" align="center" gutterBottom fontWeight="bold" sx={{ mt: 2 }}>
-                    Top 10 Global Industry Skill Trends
-                </Typography>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-                   ((Generated by AI Market Analyst))
-                </Typography>
-                
-                {loadingTrends ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 5 }}>
-                        <CircularProgress color="primary" />
-                        <Typography sx={{ mt: 2 }} color="text.secondary">Fetching Global Trends...</Typography>
-                    </Box>
-                ) : (
-                    TrendList
-                )}
-            </Paper>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Paper sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="h5" gutterBottom fontWeight="bold">Welcome, {username}!</Typography>
+            <Typography color="text.secondary" sx={{ mb: 4 }}>
+              Run an analysis in the **Analyze** tab to see your personal stats. Meanwhile, check the global market.
+            </Typography>
+            <Divider sx={{ mb: 4 }} />
+
+            <Typography variant="h6" align="center" gutterBottom fontWeight="bold" sx={{ mt: 2 }}>
+              Top 10 Global Industry Skill Trends
+            </Typography>
+            <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
+              ((Generated by AI Market Analyst))
+            </Typography>
+
+            {loadingTrends ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 5 }}>
+                <CircularProgress color="primary" />
+                <Typography sx={{ mt: 2 }} color="text.secondary">Fetching Global Trends...</Typography>
+              </Box>
+            ) : (
+              TrendList
+            )}
+          </Paper>
         </Grid>
       </Grid>
     );
   }
-  
+
   // --- FINAL DASHBOARD LAYOUT: Structured Grid for three main cards ---
   return (
     <Grid container spacing={3} justifyContent="center">
-        
-        {/* --- 1. GLOBAL MARKET TRENDS CARD (Now on Top, Full Width, Larger) --- */}
-        <Grid item xs={12}>
-            <Paper sx={{ p: 3, height: '100%' }} className="dashboard-card">
-                <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
-                    Top 10 Global Industry Skill Trends
-                </Typography>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                   <strong>(NOT 100 % ACCURATE)</strong>
-                </Typography>
-                {loadingTrends ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 5 }}>
-                        <CircularProgress color="primary" />
-                        <Typography sx={{ mt: 2 }} color="text.secondary">Fetching Global Trends...</Typography>
-                    </Box>
-                ) : (
-                    TrendList
-                )}
-            </Paper>
-        </Grid>
 
-        {/* --- 2. PERSONAL PIE CHART CARD (Missing Skills) --- */}
-        <Grid item xs={12} md={6}> 
-            <Paper sx={{ p: 3, height: '100%' }} className="dashboard-card">
-                <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
-                    Your Top 5 Missing Skills
-                </Typography>
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                   (Skills most often missed in your analyses)
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 280, p: 1 }}>
-                    {sortedMissingSkills.length > 0 ? 
-                        <Pie 
-                            data={pieData}
-                            options={pieOptions}
-                            style={{ width: '100%', height: '100%' }}
-                        /> : 
-                        <Typography align="center" color="text.secondary">You seem to have all skills covered!</Typography>
-                    }
-                </Box>
-            </Paper>
-        </Grid>
-        
-        {/* --- 3. PERSONAL BAR CHART CARD (Score History) --- */}
-        <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, height: '100%' }} className="dashboard-card">
-                <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
-                    Your Match Score History
-                </Typography>
-                 <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
-                   (Your score trend over time)
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 280, p: 1 }}>
-                    {matchScores.length > 0 ? 
-                        <Bar 
-                            data={barData} 
-                            options={barOptions}
-                            style={{ width: '100%', height: '100%' }}
-                        /> : 
-                        <Typography align="center" color="text.secondary">No match score data yet.</Typography>
-                    }
-                </Box>
-            </Paper>
-        </Grid>
-        
+      {/* --- 1. GLOBAL MARKET TRENDS CARD (Now on Top, Full Width, Larger) --- */}
+      <Grid size={{ xs: 12 }}>
+        <Paper sx={{ p: 3, height: '100%' }} className="dashboard-card">
+          <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
+            Top 10 Global Industry Skill Trends
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+            <strong>(NOT 100 % ACCURATE)</strong>
+          </Typography>
+          {loadingTrends ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 5 }}>
+              <CircularProgress color="primary" />
+              <Typography sx={{ mt: 2 }} color="text.secondary">Fetching Global Trends...</Typography>
+            </Box>
+          ) : (
+            TrendList
+          )}
+        </Paper>
+      </Grid>
+
+      {/* --- 2. PERSONAL PIE CHART CARD (Missing Skills) --- */}
+      <Grid size={{ xs: 12, md: 6 }}>
+        <Paper sx={{ p: 3, height: '100%' }} className="dashboard-card">
+          <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
+            Your Top 5 Missing Skills
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+            (Skills most often missed in your analyses)
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 280, p: 1 }}>
+            {sortedMissingSkills.length > 0 ?
+              <Pie
+                data={pieData}
+                options={pieOptions}
+                style={{ width: '100%', height: '100%' }}
+              /> :
+              <Typography align="center" color="text.secondary">You seem to have all skills covered!</Typography>
+            }
+          </Box>
+        </Paper>
+      </Grid>
+
+      {/* --- 3. PERSONAL BAR CHART CARD (Score History) --- */}
+      <Grid size={{ xs: 12, md: 6 }}>
+        <Paper sx={{ p: 3, height: '100%' }} className="dashboard-card">
+          <Typography variant="h6" align="center" gutterBottom fontWeight="bold">
+            Your Match Score History
+          </Typography>
+          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+            (Your score trend over time)
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 280, p: 1 }}>
+            {matchScores.length > 0 ?
+              <Bar
+                data={barData}
+                options={barOptions}
+                style={{ width: '100%', height: '100%' }}
+              /> :
+              <Typography align="center" color="text.secondary">No match score data yet.</Typography>
+            }
+          </Box>
+        </Paper>
+      </Grid>
+
     </Grid>
   );
 };

@@ -365,7 +365,7 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
 
         {/* DIALOG (MODAL) - Optimizer */}
         <Dialog open={showOptimizer} onClose={handleCloseOptimizer} fullWidth maxWidth="lg">
-          <DialogTitle>AI-Suggested Improvements</DialogTitle>
+          <DialogTitle component="div">AI-Suggested Improvements</DialogTitle>
           <DialogContent>
             {isOptimizing ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 5, minHeight: '300px' }}>
@@ -378,7 +378,7 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
               <Grid container spacing={3}>
                 
                 {/* 1. Original Resume Text */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="h6" gutterBottom fontWeight="bold">Original Resume Text</Typography>
                   <Paper variant="outlined" sx={{ p: 3, bgcolor: "background.default", maxHeight: '60vh', overflowY: 'auto' }}>
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
@@ -388,7 +388,7 @@ const ResultCard = ({ result = {}, originalResumeText, originalJobDesc }) => {
                 </Grid>
 
                 {/* 2. AI Optimized Text */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="h6" gutterBottom fontWeight="bold">AI Optimized Text ✨</Typography>
                   <Paper variant="outlined" sx={{ p: 3, bgcolor: "background.default", maxHeight: '60vh', overflowY: 'auto' }}>
                     <ReactMarkdown
